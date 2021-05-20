@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" type="text/css" href="reset.css" />
+</head>
+<body>
+<canvas id="julia"></canvas>
+<p id="axes" ></p>
+<script>
+'use strict';
+
+let H = window.innerHeight;
+let W = window.innerWidth;
+
+const d = document.getElementById("axes");
+d.style.position = "absolute";
+d.style.right = "30px";
+d.style.top = "30px";
+d.style.fontFamily = "Book Antiqua', Palatino, 'Palatino Linotype', 'Palatino LT STD', Georgia, serif";
+d.style.fontStyle="italic";
+d.style.fontSize="24pt";
+d.style.color = "white";
+d.style.textShadow = "3px 3px black";
+
+const j = document.getElementById("julia");
+const jtx = j.getContext("2d");
+
+let JuliaSeed = { x: 0, y: 0 };
+let dataJulia;
+const seedChangeSpeed = 0.03;
+
+const originalFocus = { x: 0.0, y: 0.0, zoom: 1 };
+let currentFocus;
+
+const maxIterations = 100;
+const animationSteps = 20;
+const zoomFactorPerClick = 5;
+
+const defaultJulia = {
+	XMin: -2.0, XMax: 2.0, YMin: -1.5, YMax: 1.5, Delta: 0.0
+};
+
+function init() {
+	document.documentElement.style.overflow = 'hidden'; // remove scrollbars
+	jtx.canvas.width = W;
+	jtx.canvas.height = H;
+	j.style.width = W + "px";
+	j.style.height = H + "px";
+	j.style.position = "absolute";
+	j.style.left = 0 + "px";
+	setZoom(currentFocus);
+}
+
+function putPixel(canvasData, x, y, r, g, b, a) {
+	var index = (x + y * W) * 4;
+
+    canvasData.data[index + 0] = r;
+    canvasData.data[index + 1] = g;
+    canvasData.data[index + 2] = b;
+    canvasData.data[index + 3] = a; // 0 -- invisible, 255 
+}
+
+function updateCanvas(canvas,canvasData) {
+    canvas.putImageData(canvasData, 0, 0);
+}
+
+function julia(c_real, c_imag) {
+	var row, col, color = 0;
+	var x, y;
+	var Z_imag, Z_real, Z2_imag, Z2_real;
+    var delta = dataJulia.Delta; 
+
+    var jtxData = jtx.getImageData(0, 0, W, H);
+    
+    //console.log("calculating julia for range " + dataJulia.YMin + ", " + dataJulia.YMax);
+	
+	/* Julia set computation */
+	y = dataJulia.YMax;
+	for(row = 0; row < H; row++){
+		x = dataJulia.XMin;
+		for(col = 0; col < W; col++){
+			color = 0;
+			Z_real = x; /* Z := x+yi */
+			Z_imag = y;
+			
+			/* Iteration */
+			do {
+				/* Z_{n+1} = Z_n^2 + c */
+				Z2_real = Z_real * Z_real; 
+				Z2_imag = Z_imag * Z_imag;
+				Z_imag = 2.0 * Z_imag * Z_real + c_imag;
+				Z_real = Z2_real - Z2_imag + c_real;	
+				color++;
+			} while(color < maxIterations && (Z2_real + Z2_imag) < 4.0);
+
+			/* plot pixel */
+			if (color < maxIterations)
+				putPixel(jtxData, col, row, color, 4*color, 20+color, color * color) ;
+			else
+				putPixel(jtxData, col, row, 0, 0, 0, 255);	
+
+			x += delta;  
+		}
+		y -= delta;  
+	}		
+
+	updateCanvas(jtx, jtxData);
+}
+
+let pressedKeys = {};
+window.onkeyup = function(e) {
+	if (pressedKeys["65"])
+		alert("Seed: " + JSON.stringify(JuliaSeed) + "\n"
+			+ "Julia: " + JSON.stringify(dataJulia) + "\n"
+			+ "Zoom: " + JSON.stringify(currentFocus));
+	
+	pressedKeys[e.keyCode] = false;
+}
+window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
+
+function checkForArrowKeys() {
+	if (pressedKeys["37"])
+		JuliaSeed.y -= seedChangeSpeed;
+	if (pressedKeys["39"])
+		JuliaSeed.y += seedChangeSpeed;
+	if (pressedKeys["38"])
+		JuliaSeed.x -= seedChangeSpeed;
+	if (pressedKeys["40"])
+		JuliaSeed.x += seedChangeSpeed;
+	
+	console.log("changing seed to: " + JuliaSeed.x + ", " + JuliaSeed.y);
+	
+	if (!zooming)
+		julia(JuliaSeed.x, JuliaSeed.y);
+	
+	setTimeout(checkForArrowKeys, 10);
+}
+
+window.onmouseup = function() {
+	if (zooming)
+		return;
+
+	const rect = j.getBoundingClientRect();
+	const x = event.clientX - rect.left;
+	const y = event.clientY - rect.top;
+	const dx = screen_xy_to_real(x, y, dataJulia).dx;
+	const dy = screen_xy_to_real(x, y, dataJulia).dy;
+	console.log("zooming to: " + dx + ", " + dy);
+	
+	zoomTo({ x: dx, y: dy, zoom: currentFocus.zoom * zoomFactorPerClick }, 1);
+}
+
+function screen_xy_to_real(x, y, dataSet) {
+	var dx = dataSet.XMin + (dataSet.Delta * x);
+	var dy = dataSet.YMin + (dataSet.Delta *(H-y));
+	console.log("c = " + dx + " + " + dy + "i");
+	return { dx, dy }
+}
+
+let zooming = false;
+function zoomTo(newFocus, step) {
+	zooming = true;
+	let percent = step / animationSteps;
+	let fasterPercent = 1 - Math.pow(1 - percent, 2);
+	let slowerPercent = Math.pow(percent, 1.5);
+	
+	let thisFocus = {
+		x: currentFocus.x + (newFocus.x - currentFocus.x) * fasterPercent,
+		y: currentFocus.y + (newFocus.y - currentFocus.y) * fasterPercent,
+		zoom: currentFocus.zoom + (newFocus.zoom - currentFocus.zoom) * slowerPercent
+	};
+	setZoom(thisFocus);
+	if (step < animationSteps) {
+		window.setTimeout(function () {
+			zoomTo(newFocus, step + 1)
+		}, 30);
+	}
+	else {
+		currentFocus = newFocus;
+		zooming = false;
+	}
+}
+
+function setZoom(focus) {
+	dataJulia.YMin = focus.y - 1 / focus.zoom;
+	dataJulia.YMax = focus.y + 1 / focus.zoom;
+	dataJulia.Delta = (dataJulia.YMax - dataJulia.YMin) / H;
+	dataJulia.XMin = (-1) * (W * dataJulia.Delta) / 2.0 + focus.x;
+	julia(JuliaSeed.x, JuliaSeed.y); 
+}
+
+window.onresize = function() {
+	W = window.innerWidth;
+    H = window.innerHeight;
+	init();
+} 
+
+window.onload = function() {
+	dataJulia = JSON.parse(JSON.stringify( defaultJulia ));
+	currentFocus = JSON.parse(JSON.stringify(originalFocus));
+	init();
+	checkForArrowKeys();
+}
+</script>
+</body>
+</html>
