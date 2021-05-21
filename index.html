@@ -26,20 +26,15 @@ d.style.textShadow = "3px 3px black";
 const j = document.getElementById("julia");
 const jtx = j.getContext("2d");
 
-let JuliaSeed = { x: 0, y: 0 };
-let dataJulia;
+let JuliaSeed = { x: 0, y: 0.0 };
 const seedChangeSpeed = 0.03;
 
-const originalFocus = { x: 0.0, y: 0.0, zoom: 1 };
+const originalFocus = { x: 0, y: 0, zoom: 1 };
 let currentFocus;
 
 const maxIterations = 100;
 const animationSteps = 20;
 const zoomFactorPerClick = 5;
-
-const defaultJulia = {
-	XMin: -2.0, XMax: 2.0, YMin: -1.5, YMax: 1.5, Delta: 0.0
-};
 
 function init() {
 	document.documentElement.style.overflow = 'hidden'; // remove scrollbars
@@ -49,7 +44,7 @@ function init() {
 	j.style.height = H + "px";
 	j.style.position = "absolute";
 	j.style.left = 0 + "px";
-	setZoom(currentFocus);
+	julia(currentFocus);
 }
 
 function putPixel(canvasData, x, y, r, g, b, a) {
@@ -65,20 +60,20 @@ function updateCanvas(canvas,canvasData) {
     canvas.putImageData(canvasData, 0, 0);
 }
 
-function julia(c_real, c_imag) {
+function julia(focus) {
+	let c_real = JuliaSeed.x;
+	let c_imag = JuliaSeed.y;
 	var row, col, color = 0;
 	var x, y;
 	var Z_imag, Z_real, Z2_imag, Z2_real;
-    var delta = dataJulia.Delta; 
+    var delta = focus.Delta; 
 
     var jtxData = jtx.getImageData(0, 0, W, H);
-    
-    //console.log("calculating julia for range " + dataJulia.YMin + ", " + dataJulia.YMax);
 	
 	/* Julia set computation */
-	y = dataJulia.YMax;
+	y = focus.YMax;
 	for(row = 0; row < H; row++){
-		x = dataJulia.XMin;
+		x = focus.XMin;
 		for(col = 0; col < W; col++){
 			color = 0;
 			Z_real = x; /* Z := x+yi */
@@ -90,19 +85,19 @@ function julia(c_real, c_imag) {
 				Z2_real = Z_real * Z_real; 
 				Z2_imag = Z_imag * Z_imag;
 				Z_imag = 2.0 * Z_imag * Z_real + c_imag;
-				Z_real = Z2_real - Z2_imag + c_real;	
+				Z_real = Z2_real - Z2_imag + c_real;
 				color++;
 			} while(color < maxIterations && (Z2_real + Z2_imag) < 4.0);
 
 			/* plot pixel */
 			if (color < maxIterations)
-				putPixel(jtxData, col, row, color, 4*color, 20+color, color * color) ;
+				putPixel(jtxData, col, row, color, 4*color, 20+color, color * color);
 			else
-				putPixel(jtxData, col, row, 0, 0, 0, 255);	
+				putPixel(jtxData, col, row, 0, 0, 0, 255);
 
-			x += delta;  
+			x += delta;
 		}
-		y -= delta;  
+		y -= delta;
 	}		
 
 	updateCanvas(jtx, jtxData);
@@ -112,7 +107,6 @@ let pressedKeys = {};
 window.onkeyup = function(e) {
 	if (pressedKeys["65"])
 		alert("Seed: " + JSON.stringify(JuliaSeed) + "\n"
-			+ "Julia: " + JSON.stringify(dataJulia) + "\n"
 			+ "Zoom: " + JSON.stringify(currentFocus));
 	
 	pressedKeys[e.keyCode] = false;
@@ -129,10 +123,8 @@ function checkForArrowKeys() {
 	if (pressedKeys["40"])
 		JuliaSeed.x += seedChangeSpeed;
 	
-	console.log("changing seed to: " + JuliaSeed.x + ", " + JuliaSeed.y);
-	
 	if (!zooming)
-		julia(JuliaSeed.x, JuliaSeed.y);
+		julia(currentFocus);
 	
 	setTimeout(checkForArrowKeys, 10);
 }
@@ -144,50 +136,61 @@ window.onmouseup = function() {
 	const rect = j.getBoundingClientRect();
 	const x = event.clientX - rect.left;
 	const y = event.clientY - rect.top;
-	const dx = screen_xy_to_real(x, y, dataJulia).dx;
-	const dy = screen_xy_to_real(x, y, dataJulia).dy;
+	const dx = screen_xy_to_real(x, y, currentFocus).x;
+	const dy = screen_xy_to_real(x, y, currentFocus).y;
+	const dZoom = currentFocus.zoom * zoomFactorPerClick;
 	console.log("zooming to: " + dx + ", " + dy);
-	
-	zoomTo({ x: dx, y: dy, zoom: currentFocus.zoom * zoomFactorPerClick }, 1);
+
+	let newFocus = getFocus(dx, dy, dZoom);
+	zoomTo(currentFocus, newFocus, 1);
 }
 
-function screen_xy_to_real(x, y, dataSet) {
-	var dx = dataSet.XMin + (dataSet.Delta * x);
-	var dy = dataSet.YMin + (dataSet.Delta *(H-y));
-	console.log("c = " + dx + " + " + dy + "i");
-	return { dx, dy }
+function screen_xy_to_real(x, y, focus) {
+	var dx = focus.XMin + (focus.Delta * x);
+	var dy = focus.YMin + (focus.Delta * (H - y));
+	// console.log("c = " + dx + " + " + dy + "i");
+	return { x: dx, y: dy }
+}
+
+function real_xy_to_screen(dx, dy, focus) {
+	var x = W - (dx - focus.XMin) / focus.Delta;
+	var y = (dy - focus.YMin) / focus.Delta;
+	return { x: x, y: y }
 }
 
 let zooming = false;
-function zoomTo(newFocus, step) {
+function zoomTo(previousFocus, goalFocus, step) {
 	zooming = true;
-	let percent = step / animationSteps;
-	let fasterPercent = 1 - Math.pow(1 - percent, 2);
-	let slowerPercent = Math.pow(percent, 1.5);
-	
-	let thisFocus = {
-		x: currentFocus.x + (newFocus.x - currentFocus.x) * fasterPercent,
-		y: currentFocus.y + (newFocus.y - currentFocus.y) * fasterPercent,
-		zoom: currentFocus.zoom + (newFocus.zoom - currentFocus.zoom) * slowerPercent
-	};
-	setZoom(thisFocus);
 	if (step < animationSteps) {
+		let totalPercent = step / animationSteps;
+		let newZoom = currentFocus.zoom + (goalFocus.zoom - currentFocus.zoom) * totalPercent;
+		
+		let screenPositionAtAnimationStart = real_xy_to_screen(goalFocus.x, goalFocus.y, currentFocus);
+		let screenPositionAtAnimationEnd = real_xy_to_screen(goalFocus.x, goalFocus.y, goalFocus);
+		let screenXAtAnimationNow = screenPositionAtAnimationStart.x + (screenPositionAtAnimationEnd.x - screenPositionAtAnimationStart.x) * totalPercent;
+		let screenYAtAnimationNow = screenPositionAtAnimationStart.y + (screenPositionAtAnimationEnd.y - screenPositionAtAnimationStart.y) * totalPercent;
+		let realPositionAtAnimationNow = screen_xy_to_real(screenXAtAnimationNow, screenYAtAnimationNow, getFocus(goalFocus.x, goalFocus.y, newZoom));
+
+		let thisFocus = getFocus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
+		julia(thisFocus);
 		window.setTimeout(function () {
-			zoomTo(newFocus, step + 1)
-		}, 30);
+			zoomTo(thisFocus, goalFocus, step + 1)
+		}, 20);
 	}
 	else {
-		currentFocus = newFocus;
+		julia(goalFocus);
+		currentFocus = goalFocus;
 		zooming = false;
 	}
 }
 
-function setZoom(focus) {
-	dataJulia.YMin = focus.y - 1 / focus.zoom;
-	dataJulia.YMax = focus.y + 1 / focus.zoom;
-	dataJulia.Delta = (dataJulia.YMax - dataJulia.YMin) / H;
-	dataJulia.XMin = (-1) * (W * dataJulia.Delta) / 2.0 + focus.x;
-	julia(JuliaSeed.x, JuliaSeed.y); 
+function getFocus(x, y, zoom) {
+	let focus = {x: x, y: y, zoom: zoom};
+	focus.YMin = focus.y - (1 / focus.zoom);
+	focus.YMax = focus.y + (1 / focus.zoom);
+	focus.Delta = (focus.YMax - focus.YMin) / H;
+	focus.XMin = (-1) * (W * focus.Delta) / 2.0 + focus.x;
+	return focus;
 }
 
 window.onresize = function() {
@@ -197,8 +200,7 @@ window.onresize = function() {
 } 
 
 window.onload = function() {
-	dataJulia = JSON.parse(JSON.stringify( defaultJulia ));
-	currentFocus = JSON.parse(JSON.stringify(originalFocus));
+	currentFocus = getFocus(originalFocus.x, originalFocus.y, originalFocus.zoom);
 	init();
 	checkForArrowKeys();
 }
