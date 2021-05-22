@@ -1,0 +1,19 @@
+{
+    "version" : "4.2.4",
+    "compilerOptions" : {
+        "target": "es5",
+        "module": "amd",
+        "removeComments": true,
+        "outFile": "../bin/fractal.js",
+        "baseUrl": "./",
+        "sourceMap": true,
+        "alwaysStrict": true,
+        "declaration": true,
+    },
+    "include": [
+        "./**/*.ts"
+    ],
+    "exclude": [
+        "./out.d.ts"
+    ]
+}
