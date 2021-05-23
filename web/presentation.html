@@ -11,20 +11,20 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,700,700i%7CMaitree:200,300,400,600,700&amp;subset=latin-ext" rel="stylesheet">
     <link rel="stylesheet" type='text/css' media='all' href="./css/webslides.css">
     <link rel="stylesheet" type="text/css" media="all" href="./css/svg-icons.css">
+    <link rel="stylesheet" type="text/css" href="css/fractal-style.css" />
   </head>
   <body>
-    <header role="banner">
-      <nav role="navigation">
-        <p class="logo"><a href="./index.html" title="Christo-Fractal Reality">Christo-Fractal Reality</a></p>
-      </nav>
-    </header>
+    <canvas id="julia"></canvas>
+    
     <main role="main">
       <article id="webslides">
         
         <section>
+          <julia seedX="-3" seedY="0"></julia>
         </section>
 
         <section>
+          <julia seedX="0" seedY="0"></julia>
           <div class="wrap aligncenter fadeIn">
             <h2>In the beginning</h2>
             <h2>God created the heavens and the earth.</h2>
@@ -35,10 +35,10 @@
     </main>
 
     <script src="./js/webslides.js"></script>
+    <script src="js/fractal.js"></script>
     <script>
       window.ws = new WebSlides();
     </script>
-    
     <script defer src="./js/svg-icons.js"></script>
   </body>
 </html>

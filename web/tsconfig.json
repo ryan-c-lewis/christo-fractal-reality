@@ -2,13 +2,13 @@
     "version" : "4.2.4",
     "compilerOptions" : {
         "target": "es5",
-        "module": "amd",
         "removeComments": true,
-        "outFile": "../bin/js/Fractal.js",
+        "outFile": "../bin/js/fractal.js",
         "baseUrl": "./",
         "sourceMap": true,
         "alwaysStrict": true,
         "declaration": true,
+        "allowJs": true
     },
     "include": [
         "./**/*.ts"

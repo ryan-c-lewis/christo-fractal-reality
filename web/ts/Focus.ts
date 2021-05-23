@@ -1,3 +1,4 @@
+/// <reference path='Globals.ts'/>
 /// <reference path='Point2D.ts'/>
 
 class Focus {

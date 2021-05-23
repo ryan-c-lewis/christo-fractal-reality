@@ -1,9 +1,7 @@
 /// <reference path='Focus.ts'/>
+/// <reference path='Globals.ts'/>
 /// <reference path='JuliaSetSeed.ts'/>
 /// <reference path='Point2D.ts'/>
-
-let H: number = window.innerHeight;
-let W: number = window.innerWidth;
 
 const j:HTMLCanvasElement = document.getElementById("julia") as HTMLCanvasElement;
 const jtx:CanvasRenderingContext2D = j.getContext("2d");
@@ -14,7 +12,7 @@ const seedChangeSpeed: number = 0.03;
 const originalFocus: Focus = new Focus(0, 0, 1);
 let currentFocus: Focus;
 
-const maxIterations: number = 100;
+const maxIterations: number = 30;
 const animationSteps: number = 5;
 const zoomFactorPerClick: number = 5;
 
@@ -153,14 +151,82 @@ function zoomTo(previousFocus, goalFocus, step) {
     }
 }
 
+let originalSeed: JuliaSetSeed;
+let changingSeed = false;
+const changeSeed = function(goalSeed: JuliaSetSeed, step: number) {
+    changingSeed = true;
+    const steps = 20;
+    if (step < steps) {
+        if (step === 0)
+            originalSeed = seed;
+        let totalPercent = step / steps;
+        let newX = originalSeed.x + (goalSeed.x - originalSeed.x) * totalPercent;
+        let newY = originalSeed.y + (goalSeed.y - originalSeed.y) * totalPercent;
+        seed = new JuliaSetSeed(newX, newY);
+        julia(currentFocus);
+        window.setTimeout(function () {
+            changeSeed(goalSeed, step + 1)
+        }, 20);
+    }
+    else {
+        julia(currentFocus);
+        seed = goalSeed;
+        changingSeed = false;
+    }
+}
+
 window.onresize = function() {
     W = window.innerWidth;
     H = window.innerHeight;
     init();
 }
 
+const respondToVisibility = function(element, callback) {
+    const options = {
+        root: document.documentElement
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            callback(element, entry.intersectionRatio > 0);
+        });
+    }, options);
+
+    observer.observe(element);
+}
+
+const getChildElementsByTagName = function(element: HTMLElement, childTagName: string) {
+    const c: HTMLCollection = element.children;
+    var x: Element[] = [];
+    for(var i =0; i<c.length;i++) {
+        if(c[i].tagName === childTagName){
+            x.push(c[i]);
+        }
+    }
+    return x;
+}
+
+let hasSetFirstSeed: boolean = false;
 window.onload = function() {
     currentFocus = new Focus(originalFocus.x, originalFocus.y, originalFocus.zoom);
     init();
     checkForArrowKeys();
+
+    var divs = document.getElementsByTagName("section");
+    for(let i: number = 0; i < divs.length; i++) {
+        respondToVisibility(divs[i], (element, visible) => {
+            if (visible) {
+                let juliaElement: Element = getChildElementsByTagName(element, "JULIA")[0];
+                let seedX: number = +juliaElement.getAttribute("seedX");
+                let seedY: number = +juliaElement.getAttribute("seedY");
+                
+                if (hasSetFirstSeed)
+                    changeSeed(new JuliaSetSeed(seedX, seedY), 0);
+                else {
+                    hasSetFirstSeed = true;
+                    seed = new JuliaSetSeed(seedX, seedY);
+                }
+            }
+        });
+    }
 }
