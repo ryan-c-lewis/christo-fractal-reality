@@ -2,6 +2,7 @@
 /// <reference path='Globals.ts'/>
 /// <reference path='JuliaSetSeed.ts'/>
 /// <reference path='Point2D.ts'/>
+/// <reference path='PresentationData.ts'/>
 
 const j:HTMLCanvasElement = document.getElementById("julia") as HTMLCanvasElement;
 const jtx:CanvasRenderingContext2D = j.getContext("2d");

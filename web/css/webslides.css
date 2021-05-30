@@ -443,6 +443,9 @@ footer nav {
   margin-right: auto;
   text-align: center; }
 
+.alignbottom {
+  vertical-align: text-bottom; }
+
 img.aligncenter,
 figure.aligncenter {
   display: block;
