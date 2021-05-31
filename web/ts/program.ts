@@ -7,6 +7,8 @@
 const j:HTMLCanvasElement = document.getElementById("julia") as HTMLCanvasElement;
 const jtx:CanvasRenderingContext2D = j.getContext("2d");
 
+let currentChapter:number = 0;
+
 let seed: JuliaSetSeed = new JuliaSetSeed(0, 0);
 const seedChangeSpeed: number = 0.03;
 
@@ -17,7 +19,7 @@ const maxIterations: number = 30;
 const animationSteps: number = 5;
 const zoomFactorPerClick: number = 5;
 
-function init() {
+function configureCanvas() {
     document.documentElement.style.overflow = 'hidden'; // remove scrollbars
     jtx.canvas.width = W;
     jtx.canvas.height = H;
@@ -179,7 +181,7 @@ const changeSeed = function(goalSeed: JuliaSetSeed, step: number) {
 window.onresize = function() {
     W = window.innerWidth;
     H = window.innerHeight;
-    init();
+    configureCanvas();
 }
 
 const respondToVisibility = function(element, callback) {
@@ -207,10 +209,30 @@ const getChildElementsByTagName = function(element: HTMLElement, childTagName: s
     return x;
 }
 
+const configureSlides = function() {
+
+    let slidesHTML:string = "";
+    for(let slideNum:number = 0; slideNum < PresentationData.chapters[currentChapter].slides.length; slideNum++) {
+        let slide = PresentationData.chapters[currentChapter].slides[slideNum];
+        let text:string = slide.text;
+        
+        slidesHTML += "<section class='slide-bottom'>";
+        slidesHTML += "  <julia seedX='0' seedY='0'></julia>";
+        slidesHTML += "  <div class='wrap content-center'>";
+        slidesHTML += "    <p>" + text + "</p>";
+        slidesHTML += "  </div>";
+        slidesHTML += "</section>";
+    }
+    
+    document.getElementById("webslides").innerHTML = slidesHTML;
+    document.dispatchEvent(new CustomEvent("afterConfigureSlides"));
+}
+
 let hasSetFirstSeed: boolean = false;
 window.onload = function() {
     currentFocus = new Focus(originalFocus.x, originalFocus.y, originalFocus.zoom);
-    init();
+    configureSlides();
+    configureCanvas();
     checkForArrowKeys();
 
     var divs = document.getElementsByTagName("section");
