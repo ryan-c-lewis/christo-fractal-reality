@@ -16,8 +16,15 @@ const originalFocus: Focus = new Focus(0, 0, 1);
 let currentFocus: Focus;
 
 const maxIterations: number = 30;
-const animationSteps: number = 5;
+const animationSteps: number = 3;
 const zoomFactorPerClick: number = 5;
+let lastClick: Point2D;
+let savedClicks: Point2D[] = [];
+
+let dots: Point2D[] = [];
+
+let isEditMode: boolean = false;
+let editMetaSpeed: number = 0;
 
 function configureCanvas() {
     document.documentElement.style.overflow = 'hidden'; // remove scrollbars
@@ -40,6 +47,7 @@ function putPixel(canvasData, x, y, r, g, b, a) {
 }
 
 function updateCanvas(canvas,canvasData) {
+    updateEditText();
     canvas.putImageData(canvasData, 0, 0);
 }
 
@@ -83,37 +91,73 @@ function julia(focus) {
         y -= delta;
     }
 
+    for(let n = 0; n < dots.length; n++) {
+        let dot:Point2D = dots[n];
+        let projected: Point2D = currentFocus.convertRealPointToScreen(dot.x, dot.y);
+        console.log("dot: " + JSON.stringify(projected));
+        for (let xDiff = -4; xDiff < 4; xDiff++)
+            for (let yDiff = -4; yDiff < 4; yDiff++)
+                putPixel(jtxData, W - Math.round(projected.x) + xDiff, H - Math.round(projected.y) + yDiff, 255, 0, 0, 255);
+    }
+    
+    for(let n = 0; n < savedClicks.length; n++) {
+        let click:Point2D = savedClicks[n];
+        let projected: Point2D = currentFocus.convertRealPointToScreen(click.x, click.y);
+        putPixel(jtxData, W - projected.x, H - projected.y, 255, 0, 0, 255);
+    }
+
     updateCanvas(jtx, jtxData);
 }
 
 let pressedKeys = {};
 window.onkeyup = function(e) {
-    if (pressedKeys["65"])
+    if (e.keyCode == "P".charCodeAt(0))
         alert("Seed: " + JSON.stringify(seed) + "\n"
             + "Zoom: " + JSON.stringify(currentFocus));
+    
+    if (e.keyCode == "57") // 9
+        editMetaSpeed -= 1;
+    if (e.keyCode == "48") // 0
+        editMetaSpeed += 1;
+
+    if (e.keyCode == "M".charCodeAt(0)) {
+        isEditMode = !isEditMode;
+        document.getElementById("editModeText").hidden = !isEditMode;
+    }
 
     pressedKeys[e.keyCode] = false;
 }
 window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
 
 function checkForArrowKeys() {
-    if (pressedKeys["37"])
-        seed = new JuliaSetSeed(seed.x, seed.y - seedChangeSpeed);
-    if (pressedKeys["39"])
-        seed = new JuliaSetSeed(seed.x, seed.y + seedChangeSpeed);
-    if (pressedKeys["38"])
-        seed = new JuliaSetSeed(seed.x - seedChangeSpeed, seed.y);
-    if (pressedKeys["40"])
-        seed = new JuliaSetSeed(seed.x + seedChangeSpeed, seed.y);
+    if (isEditMode) {
+        const speedSquared = Math.pow(2, editMetaSpeed);
+        if (pressedKeys["W".charCodeAt(0)]) {
+            seed = new JuliaSetSeed(seed.x, seed.y - seedChangeSpeed * speedSquared);
+            console.log("seed: " + JSON.stringify(seed));
+        }
+        if (pressedKeys["S".charCodeAt(0)]) {
+            seed = new JuliaSetSeed(seed.x, seed.y + seedChangeSpeed * speedSquared);
+            console.log("seed: " + JSON.stringify(seed));
+        }
+        if (pressedKeys["A".charCodeAt(0)]) {
+            seed = new JuliaSetSeed(seed.x - seedChangeSpeed * speedSquared, seed.y);
+            console.log("seed: " + JSON.stringify(seed));
+        }
+        if (pressedKeys["D".charCodeAt(0)]) {
+            seed = new JuliaSetSeed(seed.x + seedChangeSpeed * speedSquared, seed.y);
+            console.log("seed: " + JSON.stringify(seed));
+        }
 
-    if (!zooming)
-        julia(currentFocus);
-
+        if (!zooming)
+            julia(currentFocus);
+    }
+    
     setTimeout(checkForArrowKeys, 10);
 }
 
 window.onmouseup = function() {
-    if (zooming)
+    if (!isEditMode)
         return;
 
     const mouseEvent = event as MouseEvent;
@@ -122,34 +166,49 @@ window.onmouseup = function() {
     const y = mouseEvent.pageY - rect.top;
     const dx = currentFocus.convertScreenPointToReal(x, y).x;
     const dy = currentFocus.convertScreenPointToReal(x, y).y;
-    const dZoom = currentFocus.zoom * zoomFactorPerClick;
+    lastClick = new Point2D(dx, dy);
+    
+    if (zooming)
+        return;
+    
+    let dZoom = currentFocus.zoom;
+    
+    if (pressedKeys["16"] || pressedKeys["17"]) {
+        if (pressedKeys["16"] && pressedKeys["17"]) // ctrl + shift
+            dZoom /= zoomFactorPerClick * Math.pow(2, editMetaSpeed);
+        else if (pressedKeys["17"]) // ctrl
+            dZoom *= zoomFactorPerClick * Math.pow(2, editMetaSpeed);
 
-    let newFocus = new Focus(dx, dy, dZoom);
-    zoomTo(currentFocus, newFocus, 1);
+        let newFocus = new Focus(dx, dy, dZoom);
+        zoomTo(currentFocus, newFocus, 1);
+    } else if (pressedKeys["18"]) {
+        savedClicks = savedClicks.concat(lastClick);
+    }
 }
 
 let zooming = false;
-function zoomTo(previousFocus, goalFocus, step) {
+function zoomTo(focusBeforeZoom, focusAfterZoom, step) {
     zooming = true;
     if (step < animationSteps) {
         let totalPercent = step / animationSteps;
-        let newZoom = currentFocus.zoom + (goalFocus.zoom - currentFocus.zoom) * totalPercent;
+        let newZoom = focusBeforeZoom.zoom + (focusAfterZoom.zoom - focusBeforeZoom.zoom) * totalPercent;
 
-        let screenPositionAtAnimationStart: Point2D = currentFocus.convertRealPointToScreen(goalFocus.x, goalFocus.y);
-        let screenPositionAtAnimationEnd: Point2D = goalFocus.convertRealPointToScreen(goalFocus.x, goalFocus.y);
+        let screenPositionAtAnimationStart: Point2D = focusBeforeZoom.convertRealPointToScreen(focusAfterZoom.x, focusAfterZoom.y);
+        let screenPositionAtAnimationEnd: Point2D = focusAfterZoom.convertRealPointToScreen(focusAfterZoom.x, focusAfterZoom.y);
         let screenXAtAnimationNow: number = screenPositionAtAnimationStart.x + (screenPositionAtAnimationEnd.x - screenPositionAtAnimationStart.x) * totalPercent;
         let screenYAtAnimationNow: number = screenPositionAtAnimationStart.y + (screenPositionAtAnimationEnd.y - screenPositionAtAnimationStart.y) * totalPercent;
-        let realPositionAtAnimationNow: Point2D = new Focus(goalFocus.x, goalFocus.y, newZoom).convertScreenPointToReal(screenXAtAnimationNow, screenYAtAnimationNow);
+        let realPositionAtAnimationNow: Point2D = new Focus(focusAfterZoom.x, focusAfterZoom.y, newZoom).convertScreenPointToReal(screenXAtAnimationNow, screenYAtAnimationNow);
 
         let thisFocus = new Focus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
+        currentFocus = thisFocus;
         julia(thisFocus);
         window.setTimeout(function () {
-            zoomTo(thisFocus, goalFocus, step + 1)
+            zoomTo(focusBeforeZoom, focusAfterZoom, step + 1)
         }, 20);
     }
     else {
-        julia(goalFocus);
-        currentFocus = goalFocus;
+        currentFocus = focusAfterZoom;
+        julia(focusAfterZoom);
         zooming = false;
     }
 }
@@ -158,7 +217,7 @@ let originalSeed: JuliaSetSeed;
 let changingSeed = false;
 const changeSeed = function(goalSeed: JuliaSetSeed, step: number) {
     changingSeed = true;
-    const steps = 20;
+    const steps = animationSteps;
     if (step < steps) {
         if (step === 0)
             originalSeed = seed;
@@ -172,8 +231,8 @@ const changeSeed = function(goalSeed: JuliaSetSeed, step: number) {
         }, 20);
     }
     else {
-        julia(currentFocus);
         seed = goalSeed;
+        julia(currentFocus);
         changingSeed = false;
     }
 }
@@ -209,8 +268,23 @@ const getChildElementsByTagName = function(element: HTMLElement, childTagName: s
     return x;
 }
 
-const configureSlides = function() {
+const updateEditText = function() {
+    let text: string = "\"julia\": {\"x\":" + seed.x + ",\"y\":" + seed.y + "},\n" +
+        "                    \"focus\": {\"x\":" + currentFocus.x + ",\"y\":" + currentFocus.y + ",\"zoom\":" + currentFocus.zoom + "}";
+    
+    if (savedClicks.length > 0) {
+        text += "\n                    \"dots\": [\n";
+        for (let n:number = 0; n < savedClicks.length; n++) {
+            let dot = savedClicks[n];
+            text += "                        {\"text\": \"Dot " + (n + 1) + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
+        }
+        text += "                    ]";
+    }
+    
+    navigator.clipboard.writeText(text);
+}
 
+const configureSlides = function() {
     let slidesHTML:string = "";
     for(let slideNum:number = 0; slideNum < PresentationData.chapters[currentChapter].slides.length; slideNum++) {
         let slide = PresentationData.chapters[currentChapter].slides[slideNum];
@@ -228,7 +302,44 @@ const configureSlides = function() {
     document.dispatchEvent(new CustomEvent("afterConfigureSlides"));
 }
 
-let hasSetFirstSeed: boolean = false;
+const getJuliaAsOf = function(slideNum: number): JuliaSetSeed {
+    let slideToCheck: number = slideNum;
+    while (slideToCheck >= 0) {
+        let slide = PresentationData.chapters[currentChapter].slides[slideToCheck];
+        if (slide.julia)
+            return new JuliaSetSeed(+slide.julia.x, +slide.julia.y);
+        slideToCheck--;
+    }
+    return new JuliaSetSeed(0, 0);
+}
+
+const getFocusAsOf = function(slideNum: number): Focus {
+    let slideToCheck: number = slideNum;
+    while (slideToCheck >= 0) {
+        let slide = PresentationData.chapters[currentChapter].slides[slideToCheck];
+        if (slide.focus)
+            return new Focus(+slide.focus.x, +slide.focus.y, +slide.focus.zoom);
+        slideToCheck--;
+    }
+    return new Focus(0, 0, 1);
+}
+
+const getDotsAsOf = function(slideNum: number): Point2D[] {
+    let slideToCheck: number = slideNum;
+    while (slideToCheck >= 0) {
+        let slide = PresentationData.chapters[currentChapter].slides[slideToCheck];
+        if (slide.dots) {
+            let myDots: Point2D[] = [];
+            for (let n: number = 0; n < slide.dots.length; n++) {
+                myDots = myDots.concat(new Point2D(slide.dots[n].x, slide.dots[n].y));
+            }
+            return myDots;
+        }
+        slideToCheck--;
+    }
+    return [];
+}
+
 window.onload = function() {
     currentFocus = new Focus(originalFocus.x, originalFocus.y, originalFocus.zoom);
     configureSlides();
@@ -239,15 +350,19 @@ window.onload = function() {
     for(let i: number = 0; i < divs.length; i++) {
         respondToVisibility(divs[i], (element, visible) => {
             if (visible) {
-                let juliaElement: Element = getChildElementsByTagName(element, "JULIA")[0];
-                let seedX: number = +juliaElement.getAttribute("seedX");
-                let seedY: number = +juliaElement.getAttribute("seedY");
+                let slideNum: number = +element.id.replace('section-', '') - 1;
+
+                dots = getDotsAsOf(slideNum);
+                julia(currentFocus);
                 
-                if (hasSetFirstSeed)
-                    changeSeed(new JuliaSetSeed(seedX, seedY), 0);
-                else {
-                    hasSetFirstSeed = true;
-                    seed = new JuliaSetSeed(seedX, seedY);
+                let currentJulia:JuliaSetSeed = getJuliaAsOf(slideNum);
+                if (currentJulia.x !== seed.x || currentJulia.y !== seed.y) {
+                    changeSeed(currentJulia, 0);
+                }
+                
+                let focus:Focus = getFocusAsOf(slideNum);
+                if (focus.x !== currentFocus.x || focus.y !== currentFocus.y) {
+                    zoomTo(currentFocus, focus, 1);
                 }
             }
         });

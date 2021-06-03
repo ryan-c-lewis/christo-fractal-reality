@@ -3,72 +3,47 @@ const PresentationData = {
         {
             "slides": [
                 {
+                    "text": "",
+                    "julia": {"x":0,"y":0},
+                    "focus": {"x":0,"y":0,"zoom":1}
+                },
+                {
                     "text": "This is a fractal. Fractals are fascinating.",
-                    "focus": {
-                        "x": 0,
-                        "y": 0,
-                        "zoom": 0
-                    },
-                    "julia": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "julia": {"x":-0.937499999999999,"y":0.3000000000000001}
                 },
                 {
-                    "text": "Notice the shape you see. It looks like a ??, right?"
+                    "text": "Notice how the fractal is made up of stars, and each star is made up of smaller stars."
                 },
                 {
-                    "text": "As we zoom in to a part of the fractal, we see copies of the same shape.",
-                    "zoom": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "text": "As we zoom in to a part of the fractal, we see copies of the same star.",
+                    "focus": {"x":-0.3719008264462811,"y":0.38842975206611574,"zoom":5}
                 },
                 {
                     "text": "And as we keep zooming in...",
-                    "zoom": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "focus": {"x":-0.4292011019283748,"y":0.4639118457300276,"zoom":25}
                 },
                 {
-                    "text": "We keep seeing the same shape emerge in different ways.",
-                    "zoom": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "text": "We keep seeing the same star emerge in different ways.",
+                    "focus": {"x":-0.43490244490358143,"y":0.49090185950413234,"zoom":512}
                 },
                 {
                     "text": "We could literally zoom in forever and keep seeing the same thing."
                 },
                 {
-                    "text": "Let's look at a different fractal.",
-                    "focus": {
-                        "x": 0,
-                        "y": 0,
-                        "zoom": 0
-                    },
-                    "julia": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "text": "Let's zoom back out and look at a different fractal.",
+                    "focus": {"x":0,"y":0,"zoom":1}
                 },
                 {
-                    "text": "It looks completely different now, but we still have the same type of thing happening."
+                    "text": "It looks completely different now, but we still have the same type of thing happening.",
+                    "julia": {"x":-0.7274999999999988,"y":-0.35812500000000036},
                 },
                 {
                     "text": "As we zoom in...",
-                    "zoom": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "focus": {"x":0.726738980716253,"y":0.35736914600551084,"zoom":40.96}
                 },
                 {
                     "text": "That shape keeps emerging.",
-                    "zoom": {
-                        "x": 0,
-                        "y": 0
-                    }
+                    "focus": {"x":0.7143030413582957,"y":0.3604147955734223,"zoom":10737.41824}
                 },
                 {
                     "text": "This is a good metaphor for how organizational structures emerge."
@@ -76,72 +51,24 @@ const PresentationData = {
                 {
                     "text": "Let's say this spot represents an apartment room in New York City.",
                     "dots": [
-                        {
-                            "text": "Apartment #304",
-                            "x": 0,
-                            "y": 0
-                        }
+                        {"text": "Apartment #304","x":0.7143068897986867,"y":0.36041325619726594},
                     ]
                 },
                 {
                     "text": "There are other rooms on this floor.",
+                    "julia": {"x":-0.7274999999999988,"y":-0.35812500000000036},
+                    "focus": {"x":0.7144655898593095,"y":0.36034379986579307,"zoom":4398.046511104001},
                     "dots": [
-                        {
-                            "text": "Apartment #301",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #302",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #303",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #304",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #305",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #306",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #307",
-                            "x": 0,
-                            "y": 0
-                        },
-                        {
-                            "text": "Apartment #308",
-                            "x": 0,
-                            "y": 0
-                        }
+                        {"text": "Apartment #301","x":0.7143068897986867,"y":0.36041325619726594},
+                        {"text": "Apartment #302","x":0.7143904250079234,"y":0.3604803493458113},
+                        {"text": "Apartment #303","x":0.7144599524954556,"y":0.3604828548408575},
+                        {"text": "Apartment #304","x":0.7143822821490231,"y":0.3603638438261627},
+                        {"text": "Apartment #305","x":0.7143985678668235,"y":0.36032626140046964},
+                        {"text": "Apartment #306","x":0.7144211173222393,"y":0.3602799097421148},
                     ]
                 },
                 {
                     "text": "If we zoom out, all this is on one floor.",
-                    "focus": {
-                        "x": 0,
-                        "y": 0,
-                        "zoom": 0
-                    },
-                    "dots": [
-                        {
-                            "text": "Floor #3",
-                            "x": 0,
-                            "y": 0
-                        }
-                    ]
                 },
                 {
                     "text": "The building has many floors.",
@@ -178,7 +105,7 @@ const PresentationData = {
                     "focus": {
                         "x": 0,
                         "y": 0,
-                        "zoom": 0
+                        "focus": 0
                     },
                     "dots": [
                         {
@@ -213,7 +140,7 @@ const PresentationData = {
                     "focus": {
                         "x": 0,
                         "y": 0,
-                        "zoom": 0
+                        "focus": 0
                     },
                     "dots": [
                         {
@@ -238,7 +165,7 @@ const PresentationData = {
                     "focus": {
                         "x": 0,
                         "y": 0,
-                        "zoom": 0
+                        "focus": 0
                     },
                     "dots": [
                         {
@@ -263,7 +190,7 @@ const PresentationData = {
                     "focus": {
                         "x": 0,
                         "y": 0,
-                        "zoom": 0
+                        "focus": 0
                     },
                     "dots": [
                         {
@@ -288,7 +215,7 @@ const PresentationData = {
                     "focus": {
                         "x": 0,
                         "y": 0,
-                        "zoom": 0
+                        "focus": 0
                     },
                     "dots": [
                         {
@@ -323,7 +250,7 @@ const PresentationData = {
                     "focus": {
                         "x": 0,
                         "y": 0,
-                        "zoom": 0
+                        "focus": 0
                     },
                     "dots": [
                         {
