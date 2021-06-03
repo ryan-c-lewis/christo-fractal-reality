@@ -2,6 +2,7 @@
 /// <reference path='Globals.ts'/>
 /// <reference path='JuliaSetSeed.ts'/>
 /// <reference path='Point2D.ts'/>
+/// <reference path='Dot.ts'/>
 /// <reference path='PresentationData.ts'/>
 
 const j:HTMLCanvasElement = document.getElementById("julia") as HTMLCanvasElement;
@@ -16,12 +17,12 @@ const originalFocus: Focus = new Focus(0, 0, 1);
 let currentFocus: Focus;
 
 const maxIterations: number = 30;
-const animationSteps: number = 3;
+const animationSteps: number = 15;
 const zoomFactorPerClick: number = 5;
 let lastClick: Point2D;
 let savedClicks: Point2D[] = [];
 
-let dots: Point2D[] = [];
+let dots: Dot[] = [];
 
 let isEditMode: boolean = false;
 let editMetaSpeed: number = 0;
@@ -30,6 +31,9 @@ function configureCanvas() {
     document.documentElement.style.overflow = 'hidden'; // remove scrollbars
     jtx.canvas.width = W;
     jtx.canvas.height = H;
+    jtx.font = '20px Courier';
+    jtx.fillStyle = 'white';
+    jtx.textAlign = 'center';
     j.style.width = W + "px";
     j.style.height = H + "px";
     j.style.position = "absolute";
@@ -46,7 +50,7 @@ function putPixel(canvasData, x, y, r, g, b, a) {
     canvasData.data[index + 3] = a; // 0 -- invisible, 255 
 }
 
-function updateCanvas(canvas,canvasData) {
+function updateCanvas(canvas: CanvasRenderingContext2D, canvasData: ImageData) {
     updateEditText();
     canvas.putImageData(canvasData, 0, 0);
 }
@@ -59,7 +63,7 @@ function julia(focus) {
     var Z_imag, Z_real, Z2_imag, Z2_real;
     var delta = focus.Delta;
 
-    var jtxData = jtx.getImageData(0, 0, W, H);
+    let jtxData:ImageData = jtx.getImageData(0, 0, W, H);
 
     /* Julia set computation */
     y = focus.YMax;
@@ -92,12 +96,18 @@ function julia(focus) {
     }
 
     for(let n = 0; n < dots.length; n++) {
-        let dot:Point2D = dots[n];
+        let dot:Dot = dots[n];
         let projected: Point2D = currentFocus.convertRealPointToScreen(dot.x, dot.y);
-        console.log("dot: " + JSON.stringify(projected));
+        let drawX: number = W - Math.round(projected.x);
+        let drawY: number = H - Math.round(projected.y);
+        if (drawX < 0 || drawY < 0 || drawX > W || drawY > H)
+            continue;
+        
         for (let xDiff = -4; xDiff < 4; xDiff++)
             for (let yDiff = -4; yDiff < 4; yDiff++)
-                putPixel(jtxData, W - Math.round(projected.x) + xDiff, H - Math.round(projected.y) + yDiff, 255, 0, 0, 255);
+                putPixel(jtxData, drawX + xDiff, drawY + yDiff, 255, 0, 0, 255);
+
+        console.log("adding text " + dot.text + " at " + drawX + ", " + drawY);
     }
     
     for(let n = 0; n < savedClicks.length; n++) {
@@ -107,6 +117,18 @@ function julia(focus) {
     }
 
     updateCanvas(jtx, jtxData);
+
+    for(let n = 0; n < dots.length; n++) {
+        let dot:Dot = dots[n];
+        let projected: Point2D = currentFocus.convertRealPointToScreen(dot.x, dot.y);
+        let drawX: number = W - Math.round(projected.x);
+        let drawY: number = H - Math.round(projected.y);
+        if (drawX < 0 || drawY < 0 || drawX > W || drawY > H)
+            continue;
+
+        console.log("adding text " + dot.text + " at " + drawX + ", " + drawY);
+        jtx.fillText(dot.text, drawX, drawY + 24);
+    }
 }
 
 let pressedKeys = {};
@@ -324,14 +346,14 @@ const getFocusAsOf = function(slideNum: number): Focus {
     return new Focus(0, 0, 1);
 }
 
-const getDotsAsOf = function(slideNum: number): Point2D[] {
+const getDotsAsOf = function(slideNum: number): Dot[] {
     let slideToCheck: number = slideNum;
     while (slideToCheck >= 0) {
         let slide = PresentationData.chapters[currentChapter].slides[slideToCheck];
         if (slide.dots) {
-            let myDots: Point2D[] = [];
+            let myDots: Dot[] = [];
             for (let n: number = 0; n < slide.dots.length; n++) {
-                myDots = myDots.concat(new Point2D(slide.dots[n].x, slide.dots[n].y));
+                myDots = myDots.concat(new Dot(slide.dots[n].x, slide.dots[n].y, slide.dots[n].text));
             }
             return myDots;
         }
