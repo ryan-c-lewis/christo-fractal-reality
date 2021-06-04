@@ -362,6 +362,7 @@ const getDotsAsOf = function(slideNum: number): Dot[] {
     return [];
 }
 
+let isFirstAnimate = true;
 window.onload = function() {
     currentFocus = new Focus(originalFocus.x, originalFocus.y, originalFocus.zoom);
     configureSlides();
@@ -379,13 +380,23 @@ window.onload = function() {
                 
                 let currentJulia:JuliaSetSeed = getJuliaAsOf(slideNum);
                 if (currentJulia.x !== seed.x || currentJulia.y !== seed.y) {
-                    changeSeed(currentJulia, 0);
+                    if (isFirstAnimate) {
+                        seed = currentJulia;
+                        julia(currentFocus);
+                    } else
+                        changeSeed(currentJulia, 0);
                 }
                 
                 let focus:Focus = getFocusAsOf(slideNum);
                 if (focus.x !== currentFocus.x || focus.y !== currentFocus.y) {
-                    zoomTo(currentFocus, focus, 1);
+                    if (isFirstAnimate) {
+                        currentFocus = focus;
+                        julia(currentFocus);
+                    } else
+                        zoomTo(currentFocus, focus, 1);
                 }
+
+                isFirstAnimate = false;
             }
         });
     }
