@@ -11,10 +11,11 @@ class SlideManager {
                 if (visible) {
                     let slideNum: number = +element.id.replace('section-', '') - 1;
 
-                    let newJulia:Point2D = this.getJuliaAsOf(slideNum);
-                    let newFocus:Focus = this.getFocusAsOf(slideNum);
-                    let newDots = this.getDotsAsOf(slideNum);
-                    fractal.animateTo(newJulia, newFocus, newDots);
+                    let newConfiguration = new FractalConfiguration(
+                        this.getJuliaAsOf(slideNum),
+                        this.getFocusAsOf(slideNum),
+                        this.getDotsAsOf(slideNum));
+                    fractal.animateTo(newConfiguration);
                 }
             });
         }

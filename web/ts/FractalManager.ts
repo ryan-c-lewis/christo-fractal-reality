@@ -3,15 +3,12 @@ class FractalManager {
     private jtx:CanvasRenderingContext2D;
 
     private currentConfiguration: FractalConfiguration;
+    private currentAnimation: FractalAnimation;
     
-    private zooming = false;
     private maxIterations: number = 50;
-    private animationSteps: number = 15;
     private zoomFactorPerClick: number = 5;
     private lastClick: Point2D;
     private savedClicks: Point2D[] = [];
-    private isFirstAnimate = true;
-    private changingSeed = false;
 
     constructor() {
         this.currentConfiguration = new FractalConfiguration(new Point2D(0, 0), new Focus(0, 0, 1), []);
@@ -68,6 +65,11 @@ class FractalManager {
         this.currentConfiguration.focus =
             new Focus(this.currentConfiguration.focus.x, this.currentConfiguration.focus.y, this.currentConfiguration.focus.zoom);
         this.configureCanvas();
+        this.redraw();
+    }
+    
+    updateConfiguration(newConfiguration: FractalConfiguration) {
+        this.currentConfiguration = newConfiguration;
         this.redraw();
     }
 
@@ -147,8 +149,14 @@ class FractalManager {
     changeSeed(dx: number, dy: number) {
         this.currentConfiguration.seed =
             new Point2D(this.currentConfiguration.seed.x + dx, this.currentConfiguration.seed.y + dy);
-        if (!this.zooming)
-            this.redraw();
+        this.redraw();
+    }
+    
+    animateTo(newConfiguration: FractalConfiguration) {
+        if (this.currentAnimation)
+            this.currentAnimation.cancel();
+        this.currentAnimation = new FractalAnimation(this, this.currentConfiguration, newConfiguration);
+        this.currentAnimation.perform();
     }
 
     zoomTo(screenX: number, screenY: number) {
@@ -162,7 +170,7 @@ class FractalManager {
         const dy = this.currentConfiguration.focus.convertScreenPointToReal(x, y).y;
         this.lastClick = new Point2D(dx, dy);
 
-        if (this.zooming)
+        if (this.currentAnimation && !this.currentAnimation.finished())
             return;
 
         let dZoom = this.currentConfiguration.focus.zoom;
@@ -173,82 +181,13 @@ class FractalManager {
             else if (keyManager.pressedKeys["17"]) // ctrl
                 dZoom *= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
 
-            let newFocus = new Focus(dx, dy, dZoom);
-            this.animateZoomChange(this.currentConfiguration.focus, newFocus, 1);
+            this.animateTo(new FractalConfiguration(
+                this.currentConfiguration.seed,
+                new Focus(dx, dy, dZoom),
+                this.currentConfiguration.dots
+            ));
         } else if (keyManager.pressedKeys["18"]) {
             this.savedClicks = this.savedClicks.concat(this.lastClick);
         }
-    }
-
-    animateZoomChange(focusBeforeZoom, focusAfterZoom, step) {
-        this.zooming = true;
-        if (step < this.animationSteps) {
-            let totalPercent = step / this.animationSteps;
-            let newZoom = focusBeforeZoom.zoom + (focusAfterZoom.zoom - focusBeforeZoom.zoom) * totalPercent;
-
-            let screenPositionAtAnimationStart: Point2D = focusBeforeZoom.convertRealPointToScreen(focusAfterZoom.x, focusAfterZoom.y);
-            let screenPositionAtAnimationEnd: Point2D = focusAfterZoom.convertRealPointToScreen(focusAfterZoom.x, focusAfterZoom.y);
-            let screenXAtAnimationNow: number = screenPositionAtAnimationStart.x + (screenPositionAtAnimationEnd.x - screenPositionAtAnimationStart.x) * totalPercent;
-            let screenYAtAnimationNow: number = screenPositionAtAnimationStart.y + (screenPositionAtAnimationEnd.y - screenPositionAtAnimationStart.y) * totalPercent;
-            let realPositionAtAnimationNow: Point2D = new Focus(focusAfterZoom.x, focusAfterZoom.y, newZoom).convertScreenPointToReal(screenXAtAnimationNow, screenYAtAnimationNow);
-            
-            this.currentConfiguration.focus = new Focus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
-            this.redraw();
-            
-            let self = this;
-            window.setTimeout(function () {
-                self.animateZoomChange(focusBeforeZoom, focusAfterZoom, step + 1)
-            }, 20);
-        }
-        else {
-            this.currentConfiguration.focus = focusAfterZoom;
-            this.redraw();
-            this.zooming = false;
-        }
-    }
-    
-    animateSeedChange(originalSeed: Point2D, goalSeed: Point2D, step: number) {
-        this.changingSeed = true;
-        const steps = this.animationSteps;
-        if (step < steps) {
-            let totalPercent = step / steps;
-            let newX = originalSeed.x + (goalSeed.x - originalSeed.x) * totalPercent;
-            let newY = originalSeed.y + (goalSeed.y - originalSeed.y) * totalPercent;
-            this.currentConfiguration.seed = new Point2D(newX, newY);
-            this.redraw();
-            
-            let self = this;
-            window.setTimeout(function () {
-                self.animateSeedChange(originalSeed, goalSeed, step + 1)
-            }, 20);
-        }
-        else {
-            this.currentConfiguration.seed = goalSeed;
-            this.redraw();
-            this.changingSeed = false;
-        }
-    }
-    
-    animateTo(newJulia: Point2D, newFocus: Focus, newDots: Dot[], ) {
-        this.currentConfiguration.dots = newDots;
-        this.redraw(); // to update dots if nothing else is happening. need a better way
-
-        if (newJulia.x !== this.currentConfiguration.seed.x || newJulia.y !== this.currentConfiguration.seed.y) {
-            if (this.isFirstAnimate) {
-                this.currentConfiguration.seed = newJulia;
-                this.redraw();
-            } else
-                this.animateSeedChange(this.currentConfiguration.seed, newJulia, 0);
-        }
-
-        if (newFocus.x !== this.currentConfiguration.focus.x || newFocus.y !== this.currentConfiguration.focus.y) {
-            if (this.isFirstAnimate) {
-                this.currentConfiguration.focus = newFocus;
-                this.redraw();
-            } else
-                this.animateZoomChange(this.currentConfiguration.focus, newFocus, 1);
-        }
-
-        this.isFirstAnimate = false;
     }
 }
