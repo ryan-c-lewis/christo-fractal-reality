@@ -34,7 +34,7 @@ class FractalManager {
         this.j.style.height = H + "px";
         this.j.style.position = "absolute";
         this.j.style.left = 0 + "px";
-        this.julia(this.currentFocus);
+        this.redraw();
     }
 
     putPixel(canvasData, x, y, r, g, b, a) {
@@ -66,21 +66,27 @@ class FractalManager {
 
         navigator.clipboard.writeText(text);
     }
+    
+    afterWindowResized() {
+        this.currentFocus = new Focus(this.currentFocus.x, this.currentFocus.y, this.currentFocus.zoom);
+        this.configureCanvas();
+        this.redraw();
+    }
 
-    julia(focus) {
+    redraw() {
         let c_real = this.seed.x;
         let c_imag = this.seed.y;
         var row, col, color = 0;
         var x, y;
         var Z_imag, Z_real, Z2_imag, Z2_real;
-        var delta = focus.Delta;
+        var delta = this.currentFocus.Delta;
 
         let jtxData:ImageData = this.jtx.getImageData(0, 0, W, H);
 
         /* Julia set computation */
-        y = focus.YMax;
+        y = this.currentFocus.YMax;
         for(row = 0; row < H; row++){
-            x = focus.XMin;
+            x = this.currentFocus.XMin;
             for(col = 0; col < W; col++){
                 color = 0;
                 Z_real = x; /* Z := x+yi */
@@ -148,7 +154,7 @@ class FractalManager {
         console.log("seed: " + JSON.stringify(this.seed));
 
         if (!this.zooming)
-            this.julia(this.currentFocus);
+            this.redraw();
     }
 
     zoomTo(screenX: number, screenY: number) {
@@ -194,7 +200,7 @@ class FractalManager {
 
             let thisFocus = new Focus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
             this.currentFocus = thisFocus;
-            this.julia(thisFocus);
+            this.redraw();
             let self = this;
             window.setTimeout(function () {
                 self.animateZoomChange(focusBeforeZoom, focusAfterZoom, step + 1)
@@ -202,7 +208,7 @@ class FractalManager {
         }
         else {
             this.currentFocus = focusAfterZoom;
-            this.julia(focusAfterZoom);
+            this.redraw();
             this.zooming = false;
         }
     }
@@ -217,7 +223,8 @@ class FractalManager {
             let newX = this.originalSeed.x + (goalSeed.x - this.originalSeed.x) * totalPercent;
             let newY = this.originalSeed.y + (goalSeed.y - this.originalSeed.y) * totalPercent;
             this.seed = new Point2D(newX, newY);
-            this.julia(this.currentFocus);
+            this.redraw();
+            
             let self = this;
             window.setTimeout(function () {
                 self.animateSeedChange(goalSeed, step + 1)
@@ -225,19 +232,19 @@ class FractalManager {
         }
         else {
             this.seed = goalSeed;
-            this.julia(this.currentFocus);
+            this.redraw();
             this.changingSeed = false;
         }
     }
     
     animateTo(newJulia: Point2D, newFocus: Focus, newDots: Dot[], ) {
         this.dots = newDots;
-        this.julia(this.currentFocus); // to update dots if nothing else is happening. need a better way
+        this.redraw(); // to update dots if nothing else is happening. need a better way
 
         if (newJulia.x !== this.seed.x || newJulia.y !== this.seed.y) {
             if (this.isFirstAnimate) {
                 this.seed = newJulia;
-                this.julia(this.currentFocus);
+                this.redraw();
             } else
                 this.animateSeedChange(newJulia, 0);
         }
@@ -245,7 +252,7 @@ class FractalManager {
         if (newFocus.x !== this.currentFocus.x || newFocus.y !== this.currentFocus.y) {
             if (this.isFirstAnimate) {
                 this.currentFocus = newFocus;
-                this.julia(this.currentFocus);
+                this.redraw();
             } else
                 this.animateZoomChange(this.currentFocus, newFocus, 1);
         }

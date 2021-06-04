@@ -22,7 +22,7 @@ window.onmouseup = function() {
 window.onresize = function() {
     W = window.innerWidth;
     H = window.innerHeight;
-    fractal?.configureCanvas();
+    fractal?.afterWindowResized();
 }
 
 window.onload = function() {
