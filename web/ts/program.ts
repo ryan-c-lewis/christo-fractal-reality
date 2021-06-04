@@ -3,6 +3,7 @@
 /// <reference path='FractalManager.ts'/>
 /// <reference path='Globals.ts'/>
 /// <reference path='JuliaSetSeed.ts'/>
+/// <reference path='KeyManager.ts'/>
 /// <reference path='Point2D.ts'/>
 /// <reference path='PresentationData.ts'/>
 
@@ -12,43 +13,7 @@ let isEditMode: boolean = false;
 let editMetaSpeed: number = 0;
 
 let fractal: FractalManager = new FractalManager();
-
-let pressedKeys = {};
-window.onkeyup = function(e) {
-    if (e.keyCode == "57") // 9
-        editMetaSpeed -= 1;
-    if (e.keyCode == "48") // 0
-        editMetaSpeed += 1;
-
-    if (e.keyCode == "M".charCodeAt(0)) {
-        isEditMode = !isEditMode;
-        document.getElementById("editModeText").hidden = !isEditMode;
-    }
-
-    pressedKeys[e.keyCode] = false;
-}
-window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
-
-let seedChangeSpeed: number = 0.03;
-function checkForArrowKeys() {
-    if (isEditMode) {
-        const speedSquared = Math.pow(2, editMetaSpeed);
-        if (pressedKeys["W".charCodeAt(0)]) {
-            fractal.changeSeed(0, -seedChangeSpeed * speedSquared);
-        }
-        if (pressedKeys["S".charCodeAt(0)]) {
-            fractal.changeSeed(0, seedChangeSpeed * speedSquared);
-        }
-        if (pressedKeys["A".charCodeAt(0)]) {
-            fractal.changeSeed(-seedChangeSpeed * speedSquared, 0);
-        }
-        if (pressedKeys["D".charCodeAt(0)]) {
-            fractal.changeSeed(seedChangeSpeed * speedSquared, 0)
-        }
-    }
-    
-    setTimeout(checkForArrowKeys, 10);
-}
+let keyManager: KeyManager = new KeyManager();
 
 const respondToVisibility = function(element, callback) {
     const options = {
@@ -133,9 +98,8 @@ window.onresize = function() {
 
 window.onload = function() {
     configureSlides();
-    checkForArrowKeys();
 
-    var divs = document.getElementsByTagName("section");
+    const divs = document.getElementsByTagName("section");
     for(let i: number = 0; i < divs.length; i++) {
         respondToVisibility(divs[i], (element, visible) => {
             if (visible) {

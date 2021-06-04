@@ -165,15 +165,15 @@ class FractalManager {
 
         let dZoom = this.currentFocus.zoom;
 
-        if (pressedKeys["16"] || pressedKeys["17"]) {
-            if (pressedKeys["16"] && pressedKeys["17"]) // ctrl + shift
+        if (keyManager.pressedKeys["16"] || keyManager.pressedKeys["17"]) {
+            if (keyManager.pressedKeys["16"] && keyManager.pressedKeys["17"]) // ctrl + shift
                 dZoom /= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
-            else if (pressedKeys["17"]) // ctrl
+            else if (keyManager.pressedKeys["17"]) // ctrl
                 dZoom *= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
 
             let newFocus = new Focus(dx, dy, dZoom);
             this.animateZoomChange(this.currentFocus, newFocus, 1);
-        } else if (pressedKeys["18"]) {
+        } else if (keyManager.pressedKeys["18"]) {
             this.savedClicks = this.savedClicks.concat(this.lastClick);
         }
     }
