@@ -11,7 +11,7 @@ class SlideManager {
                 if (visible) {
                     let slideNum: number = +element.id.replace('section-', '') - 1;
 
-                    let newJulia:JuliaSetSeed = this.getJuliaAsOf(slideNum);
+                    let newJulia:Point2D = this.getJuliaAsOf(slideNum);
                     let newFocus:Focus = this.getFocusAsOf(slideNum);
                     let newDots = this.getDotsAsOf(slideNum);
                     fractal.animateTo(newJulia, newFocus, newDots);
@@ -52,15 +52,15 @@ class SlideManager {
         document.dispatchEvent(new CustomEvent("afterConfigureSlides"));
     }
 
-    getJuliaAsOf(slideNum: number): JuliaSetSeed {
+    getJuliaAsOf(slideNum: number): Point2D {
         let slideToCheck: number = slideNum;
         while (slideToCheck >= 0) {
             let slide = PresentationData.chapters[this.currentChapter].slides[slideToCheck];
             if (slide.julia)
-                return new JuliaSetSeed(+slide.julia.x, +slide.julia.y);
+                return new Point2D(+slide.julia.x, +slide.julia.y);
             slideToCheck--;
         }
-        return new JuliaSetSeed(0, 0);
+        return new Point2D(0, 0);
     }
 
     getFocusAsOf(slideNum: number): Focus {

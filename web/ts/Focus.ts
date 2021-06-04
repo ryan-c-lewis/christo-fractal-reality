@@ -1,6 +1,3 @@
-/// <reference path='Globals.ts'/>
-/// <reference path='Point2D.ts'/>
-
 class Focus {
     readonly center: Point2D;
     readonly zoom: number;

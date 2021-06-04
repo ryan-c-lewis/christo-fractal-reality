@@ -8,7 +8,7 @@ const PresentationData = {
                     "focus": {"x":0,"y":0,"zoom":1}
                 },
                 {
-                    "text": "This is a fractal. Fractals are fascinating.",
+                    "text": "This is a fractal.",
                     "julia": {"x":-0.937499999999999,"y":0.3000000000000001}
                 },
                 {
@@ -297,18 +297,18 @@ const PresentationData = {
                 },
                 {
                     "text": "This idea of \"zooming in to become more specific\" and \"zooming out to become more general\" is enormously helpful in understanding reality. Organizational patterns emerge that can scale up and scale down. We can zoom \"in\" and \"out\" of patterns to explore them.",
+                    "focus": {"x":0,"y":0,"zoom":1},
                     dots: []
                 },
                 {
                     "text": "Zooming \"in\" and \"out\" can also help us understand the patterns found in the Bible.",
                     "julia": {"x":0,"y":0},
-                    "focus": {"x":0,"y":0,"zoom":1}
                 },
                 {
                     "text": "The Bible is much, much more complex than merely a set of stories or mythologies. The Bible explores the patterns that are most fundamental to reality, and the Bible zooms \"in\" and \"out\" of these patterns to explore them at different scales.",
                 },
                 {
-                    "text": "And most importantly: these fundamental patterns find their ultimate form in the very person of Christ himself. I hope to show this in the coming sections.",
+                    "text": "And most importantly: these fundamental patterns find their ultimate expression in the very person of Christ himself.",
                 },
             ]
         }

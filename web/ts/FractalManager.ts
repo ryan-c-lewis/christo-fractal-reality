@@ -1,17 +1,19 @@
 class FractalManager {
     private j:HTMLCanvasElement;
     private jtx:CanvasRenderingContext2D;
-    private seed: JuliaSetSeed = new JuliaSetSeed(0, 0);
+    private seed: Point2D = new Point2D(0, 0);
     private originalFocus: Focus = new Focus(0, 0, 1);
     private currentFocus: Focus;
     private zooming = false;
-    private maxIterations: number = 30;
+    private maxIterations: number = 50;
     private animationSteps: number = 15;
     private zoomFactorPerClick: number = 5;
     private lastClick: Point2D;
     private savedClicks: Point2D[] = [];
     private dots: Dot[] = [];
     private isFirstAnimate = true;
+    private originalSeed: Point2D;
+    private changingSeed = false;
 
     constructor() {
         this.currentFocus = new Focus(this.originalFocus.x, this.originalFocus.y, this.originalFocus.zoom);
@@ -142,7 +144,7 @@ class FractalManager {
     }
     
     changeSeed(dx: number, dy: number) {
-        this.seed = new JuliaSetSeed(this.seed.x + dx, this.seed.y + dy);
+        this.seed = new Point2D(this.seed.x + dx, this.seed.y + dy);
         console.log("seed: " + JSON.stringify(this.seed));
 
         if (!this.zooming)
@@ -204,10 +206,8 @@ class FractalManager {
             this.zooming = false;
         }
     }
-
-    originalSeed: JuliaSetSeed;
-    changingSeed = false;
-    animateSeedChange(goalSeed: JuliaSetSeed, step: number) {
+    
+    animateSeedChange(goalSeed: Point2D, step: number) {
         this.changingSeed = true;
         const steps = this.animationSteps;
         if (step < steps) {
@@ -216,7 +216,7 @@ class FractalManager {
             let totalPercent = step / steps;
             let newX = this.originalSeed.x + (goalSeed.x - this.originalSeed.x) * totalPercent;
             let newY = this.originalSeed.y + (goalSeed.y - this.originalSeed.y) * totalPercent;
-            this.seed = new JuliaSetSeed(newX, newY);
+            this.seed = new Point2D(newX, newY);
             this.julia(this.currentFocus);
             let self = this;
             window.setTimeout(function () {
@@ -230,7 +230,7 @@ class FractalManager {
         }
     }
     
-    animateTo(newJulia: JuliaSetSeed, newFocus: Focus, newDots: Dot[], ) {
+    animateTo(newJulia: Point2D, newFocus: Focus, newDots: Dot[], ) {
         this.dots = newDots;
         this.julia(this.currentFocus); // to update dots if nothing else is happening. need a better way
 
