@@ -1,22 +1,20 @@
 class FractalManager {
     private j:HTMLCanvasElement;
     private jtx:CanvasRenderingContext2D;
-    private seed: Point2D = new Point2D(0, 0);
-    private originalFocus: Focus = new Focus(0, 0, 1);
-    private currentFocus: Focus;
+
+    private currentConfiguration: FractalConfiguration;
+    
     private zooming = false;
     private maxIterations: number = 50;
     private animationSteps: number = 15;
     private zoomFactorPerClick: number = 5;
     private lastClick: Point2D;
     private savedClicks: Point2D[] = [];
-    private dots: Dot[] = [];
     private isFirstAnimate = true;
-    private originalSeed: Point2D;
     private changingSeed = false;
 
     constructor() {
-        this.currentFocus = new Focus(this.originalFocus.x, this.originalFocus.y, this.originalFocus.zoom);
+        this.currentConfiguration = new FractalConfiguration(new Point2D(0, 0), new Focus(0, 0, 1), []);
 
         this.j = document.getElementById("julia") as HTMLCanvasElement;
         this.jtx = this.j.getContext("2d");
@@ -38,8 +36,7 @@ class FractalManager {
     }
 
     putPixel(canvasData, x, y, r, g, b, a) {
-        var index = (x + y * W) * 4;
-
+        const index = (x + y * W) * 4;
         canvasData.data[index + 0] = r;
         canvasData.data[index + 1] = g;
         canvasData.data[index + 2] = b;
@@ -52,8 +49,8 @@ class FractalManager {
     }
 
     updateEditText() {
-        let text: string = "\"julia\": {\"x\":" + this.seed.x + ",\"y\":" + this.seed.y + "},\n" +
-            "                    \"focus\": {\"x\":" + this.currentFocus.x + ",\"y\":" + this.currentFocus.y + ",\"zoom\":" + this.currentFocus.zoom + "}";
+        let text: string = "\"julia\": {\"x\":" + this.currentConfiguration.seed.x + ",\"y\":" + this.currentConfiguration.seed.y + "},\n" +
+            "                    \"focus\": {\"x\":" + this.currentConfiguration.focus.x + ",\"y\":" + this.currentConfiguration.focus.y + ",\"zoom\":" + this.currentConfiguration.focus.zoom + "}";
 
         if (this.savedClicks.length > 0) {
             text += "\n                    \"dots\": [\n";
@@ -68,25 +65,26 @@ class FractalManager {
     }
     
     afterWindowResized() {
-        this.currentFocus = new Focus(this.currentFocus.x, this.currentFocus.y, this.currentFocus.zoom);
+        this.currentConfiguration.focus =
+            new Focus(this.currentConfiguration.focus.x, this.currentConfiguration.focus.y, this.currentConfiguration.focus.zoom);
         this.configureCanvas();
         this.redraw();
     }
 
     redraw() {
-        let c_real = this.seed.x;
-        let c_imag = this.seed.y;
+        let c_real = this.currentConfiguration.seed.x;
+        let c_imag = this.currentConfiguration.seed.y;
         var row, col, color = 0;
         var x, y;
         var Z_imag, Z_real, Z2_imag, Z2_real;
-        var delta = this.currentFocus.Delta;
+        var delta = this.currentConfiguration.focus.Delta;
 
         let jtxData:ImageData = this.jtx.getImageData(0, 0, W, H);
 
         /* Julia set computation */
-        y = this.currentFocus.YMax;
+        y = this.currentConfiguration.focus.YMax;
         for(row = 0; row < H; row++){
-            x = this.currentFocus.XMin;
+            x = this.currentConfiguration.focus.XMin;
             for(col = 0; col < W; col++){
                 color = 0;
                 Z_real = x; /* Z := x+yi */
@@ -113,9 +111,9 @@ class FractalManager {
             y -= delta;
         }
 
-        for(let n = 0; n < this.dots.length; n++) {
-            let dot:Dot = this.dots[n];
-            let projected: Point2D = this.currentFocus.convertRealPointToScreen(dot.x, dot.y);
+        for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
+            let dot:Dot = this.currentConfiguration.dots[n];
+            let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
             let drawX: number = W - Math.round(projected.x);
             let drawY: number = H - Math.round(projected.y);
             if (drawX < 0 || drawY < 0 || drawX > W || drawY > H)
@@ -124,35 +122,31 @@ class FractalManager {
             for (let xDiff = -4; xDiff < 4; xDiff++)
                 for (let yDiff = -4; yDiff < 4; yDiff++)
                     this.putPixel(jtxData, drawX + xDiff, drawY + yDiff, 255, 0, 0, 255);
-
-            console.log("adding text " + dot.text + " at " + drawX + ", " + drawY);
         }
 
         for(let n = 0; n < this.savedClicks.length; n++) {
             let click:Point2D = this.savedClicks[n];
-            let projected: Point2D = this.currentFocus.convertRealPointToScreen(click.x, click.y);
+            let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(click.x, click.y);
             this.putPixel(jtxData, W - projected.x, H - projected.y, 255, 0, 0, 255);
         }
 
         this.updateCanvas(this.jtx, jtxData);
 
-        for(let n = 0; n < this.dots.length; n++) {
-            let dot:Dot = this.dots[n];
-            let projected: Point2D = this.currentFocus.convertRealPointToScreen(dot.x, dot.y);
+        for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
+            let dot:Dot = this.currentConfiguration.dots[n];
+            let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
             let drawX: number = W - Math.round(projected.x);
             let drawY: number = H - Math.round(projected.y);
             if (drawX < 0 || drawY < 0 || drawX > W || drawY > H)
                 continue;
 
-            console.log("adding text " + dot.text + " at " + drawX + ", " + drawY);
             this.jtx.fillText(dot.text, drawX, drawY + 24);
         }
     }
     
     changeSeed(dx: number, dy: number) {
-        this.seed = new Point2D(this.seed.x + dx, this.seed.y + dy);
-        console.log("seed: " + JSON.stringify(this.seed));
-
+        this.currentConfiguration.seed =
+            new Point2D(this.currentConfiguration.seed.x + dx, this.currentConfiguration.seed.y + dy);
         if (!this.zooming)
             this.redraw();
     }
@@ -164,14 +158,14 @@ class FractalManager {
         const rect = this.j.getBoundingClientRect();
         const x = screenX - rect.left;
         const y = screenY - rect.top;
-        const dx = this.currentFocus.convertScreenPointToReal(x, y).x;
-        const dy = this.currentFocus.convertScreenPointToReal(x, y).y;
+        const dx = this.currentConfiguration.focus.convertScreenPointToReal(x, y).x;
+        const dy = this.currentConfiguration.focus.convertScreenPointToReal(x, y).y;
         this.lastClick = new Point2D(dx, dy);
 
         if (this.zooming)
             return;
 
-        let dZoom = this.currentFocus.zoom;
+        let dZoom = this.currentConfiguration.focus.zoom;
 
         if (keyManager.pressedKeys["16"] || keyManager.pressedKeys["17"]) {
             if (keyManager.pressedKeys["16"] && keyManager.pressedKeys["17"]) // ctrl + shift
@@ -180,7 +174,7 @@ class FractalManager {
                 dZoom *= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
 
             let newFocus = new Focus(dx, dy, dZoom);
-            this.animateZoomChange(this.currentFocus, newFocus, 1);
+            this.animateZoomChange(this.currentConfiguration.focus, newFocus, 1);
         } else if (keyManager.pressedKeys["18"]) {
             this.savedClicks = this.savedClicks.concat(this.lastClick);
         }
@@ -197,64 +191,62 @@ class FractalManager {
             let screenXAtAnimationNow: number = screenPositionAtAnimationStart.x + (screenPositionAtAnimationEnd.x - screenPositionAtAnimationStart.x) * totalPercent;
             let screenYAtAnimationNow: number = screenPositionAtAnimationStart.y + (screenPositionAtAnimationEnd.y - screenPositionAtAnimationStart.y) * totalPercent;
             let realPositionAtAnimationNow: Point2D = new Focus(focusAfterZoom.x, focusAfterZoom.y, newZoom).convertScreenPointToReal(screenXAtAnimationNow, screenYAtAnimationNow);
-
-            let thisFocus = new Focus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
-            this.currentFocus = thisFocus;
+            
+            this.currentConfiguration.focus = new Focus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
             this.redraw();
+            
             let self = this;
             window.setTimeout(function () {
                 self.animateZoomChange(focusBeforeZoom, focusAfterZoom, step + 1)
             }, 20);
         }
         else {
-            this.currentFocus = focusAfterZoom;
+            this.currentConfiguration.focus = focusAfterZoom;
             this.redraw();
             this.zooming = false;
         }
     }
     
-    animateSeedChange(goalSeed: Point2D, step: number) {
+    animateSeedChange(originalSeed: Point2D, goalSeed: Point2D, step: number) {
         this.changingSeed = true;
         const steps = this.animationSteps;
         if (step < steps) {
-            if (step === 0)
-                this.originalSeed = this.seed;
             let totalPercent = step / steps;
-            let newX = this.originalSeed.x + (goalSeed.x - this.originalSeed.x) * totalPercent;
-            let newY = this.originalSeed.y + (goalSeed.y - this.originalSeed.y) * totalPercent;
-            this.seed = new Point2D(newX, newY);
+            let newX = originalSeed.x + (goalSeed.x - originalSeed.x) * totalPercent;
+            let newY = originalSeed.y + (goalSeed.y - originalSeed.y) * totalPercent;
+            this.currentConfiguration.seed = new Point2D(newX, newY);
             this.redraw();
             
             let self = this;
             window.setTimeout(function () {
-                self.animateSeedChange(goalSeed, step + 1)
+                self.animateSeedChange(originalSeed, goalSeed, step + 1)
             }, 20);
         }
         else {
-            this.seed = goalSeed;
+            this.currentConfiguration.seed = goalSeed;
             this.redraw();
             this.changingSeed = false;
         }
     }
     
     animateTo(newJulia: Point2D, newFocus: Focus, newDots: Dot[], ) {
-        this.dots = newDots;
+        this.currentConfiguration.dots = newDots;
         this.redraw(); // to update dots if nothing else is happening. need a better way
 
-        if (newJulia.x !== this.seed.x || newJulia.y !== this.seed.y) {
+        if (newJulia.x !== this.currentConfiguration.seed.x || newJulia.y !== this.currentConfiguration.seed.y) {
             if (this.isFirstAnimate) {
-                this.seed = newJulia;
+                this.currentConfiguration.seed = newJulia;
                 this.redraw();
             } else
-                this.animateSeedChange(newJulia, 0);
+                this.animateSeedChange(this.currentConfiguration.seed, newJulia, 0);
         }
 
-        if (newFocus.x !== this.currentFocus.x || newFocus.y !== this.currentFocus.y) {
+        if (newFocus.x !== this.currentConfiguration.focus.x || newFocus.y !== this.currentConfiguration.focus.y) {
             if (this.isFirstAnimate) {
-                this.currentFocus = newFocus;
+                this.currentConfiguration.focus = newFocus;
                 this.redraw();
             } else
-                this.animateZoomChange(this.currentFocus, newFocus, 1);
+                this.animateZoomChange(this.currentConfiguration.focus, newFocus, 1);
         }
 
         this.isFirstAnimate = false;

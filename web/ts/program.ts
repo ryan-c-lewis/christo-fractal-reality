@@ -1,5 +1,7 @@
 /// <reference path='Dot.ts'/>
 /// <reference path='Focus.ts'/>
+/// <reference path='FractalAnimation.ts'/>
+/// <reference path='FractalConfiguration.ts'/>
 /// <reference path='FractalManager.ts'/>
 /// <reference path='KeyManager.ts'/>
 /// <reference path='Point2D.ts'/>
