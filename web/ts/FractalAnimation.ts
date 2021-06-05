@@ -15,6 +15,10 @@ class FractalAnimation {
     perform() {
         this.update(0);
     }
+
+    jumpToEnd() {
+        this.update(this.steps);
+    }
     
     cancel() {
         this.isFinished = true;
@@ -63,9 +67,15 @@ class FractalAnimation {
 
         let screenPositionAtAnimationStart: Point2D = this.start.focus.convertRealPointToScreen(this.end.focus.x, this.end.focus.y);
         let screenPositionAtAnimationEnd: Point2D = this.end.focus.convertRealPointToScreen(this.end.focus.x, this.end.focus.y);
+        
+        // TODO: why am I having to do this??
+        screenPositionAtAnimationStart = new Point2D(W - screenPositionAtAnimationStart.x, H - screenPositionAtAnimationStart.y);
+        screenPositionAtAnimationEnd = new Point2D(W - screenPositionAtAnimationEnd.x, H - screenPositionAtAnimationEnd.y);
+        
         let screenXAtAnimationNow: number = screenPositionAtAnimationStart.x + (screenPositionAtAnimationEnd.x - screenPositionAtAnimationStart.x) * totalPercent;
         let screenYAtAnimationNow: number = screenPositionAtAnimationStart.y + (screenPositionAtAnimationEnd.y - screenPositionAtAnimationStart.y) * totalPercent;
-        let realPositionAtAnimationNow: Point2D = new Focus(this.end.focus.x, this.end.focus.y, newZoom).convertScreenPointToReal(screenXAtAnimationNow, screenYAtAnimationNow);
+        let realPositionAtAnimationNow: Point2D = new Focus(this.end.focus.x, this.end.focus.y, newZoom)
+            .convertScreenPointToReal(screenXAtAnimationNow, screenYAtAnimationNow);
 
         return new Focus(realPositionAtAnimationNow.x, realPositionAtAnimationNow.y, newZoom);
     }

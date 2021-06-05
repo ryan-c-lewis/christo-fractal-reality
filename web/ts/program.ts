@@ -16,9 +16,19 @@ let fractal: FractalManager;
 let keyManager: KeyManager;
 let slideManager: SlideManager;
 
+window.onmousedown = function() {
+    const mouseEvent = event as MouseEvent;
+    fractal.mousedown(mouseEvent.pageX, mouseEvent.pageY);
+}
+
+window.onmousemove = function() {
+    const mouseEvent = event as MouseEvent;
+    fractal.mousemove(mouseEvent.pageX, mouseEvent.pageY);
+}
+
 window.onmouseup = function() {
     const mouseEvent = event as MouseEvent;
-    fractal.zoomTo(mouseEvent.pageX, mouseEvent.pageY);
+    fractal.mouseup(mouseEvent.pageX, mouseEvent.pageY);
 }
 
 window.onresize = function() {

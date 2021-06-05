@@ -7,8 +7,12 @@ class FractalManager {
     
     private maxIterations: number = 50;
     private zoomFactorPerClick: number = 5;
+    
     private lastClick: Point2D;
     private savedClicks: Point2D[] = [];
+    
+    private isDraggingDot: boolean;
+    private draggingDotNumber: number;
 
     constructor() {
         this.currentConfiguration = new FractalConfiguration(new Point2D(0, 0), new Focus(0, 0, 1), []);
@@ -41,19 +45,26 @@ class FractalManager {
     }
 
     updateCanvas(canvas: CanvasRenderingContext2D, canvasData: ImageData) {
-        this.updateEditText();
+        this.copyJsonToClipboard();
         canvas.putImageData(canvasData, 0, 0);
     }
 
-    updateEditText() {
+    copyJsonToClipboard() {
+        if (!isEditMode)
+            return;
+        
         let text: string = "\"julia\": {\"x\":" + this.currentConfiguration.seed.x + ",\"y\":" + this.currentConfiguration.seed.y + "},\n" +
             "                    \"focus\": {\"x\":" + this.currentConfiguration.focus.x + ",\"y\":" + this.currentConfiguration.focus.y + ",\"zoom\":" + this.currentConfiguration.focus.zoom + "}";
 
-        if (this.savedClicks.length > 0) {
-            text += "\n                    \"dots\": [\n";
+        if (this.currentConfiguration.dots.length + this.savedClicks.length > 0) {
+            text += ",\n                    \"dots\": [\n";
+            for (let n:number = 0; n < this.currentConfiguration.dots.length; n++) {
+                let dot = this.currentConfiguration.dots[n];
+                text += "                        {\"text\": \"" + dot.text + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
+            }
             for (let n:number = 0; n < this.savedClicks.length; n++) {
                 let dot = this.savedClicks[n];
-                text += "                        {\"text\": \"Dot " + (n + 1) + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
+                text += "                        {\"text\": \"Dot" + (n + 1) + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
             }
             text += "                    ]";
         }
@@ -115,34 +126,30 @@ class FractalManager {
 
         for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
             let dot:Dot = this.currentConfiguration.dots[n];
-            let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
-            let drawX: number = W - Math.round(projected.x);
-            let drawY: number = H - Math.round(projected.y);
-            if (drawX < 0 || drawY < 0 || drawX > W || drawY > H)
+            let draw: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
+            if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
 
             for (let xDiff = -4; xDiff < 4; xDiff++)
                 for (let yDiff = -4; yDiff < 4; yDiff++)
-                    this.putPixel(jtxData, drawX + xDiff, drawY + yDiff, 255, 0, 0, 255);
+                    this.putPixel(jtxData, Math.round(draw.x + xDiff), Math.round(draw.y + yDiff), 255, 0, 0, 255);
         }
 
         for(let n = 0; n < this.savedClicks.length; n++) {
             let click:Point2D = this.savedClicks[n];
             let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(click.x, click.y);
-            this.putPixel(jtxData, W - projected.x, H - projected.y, 255, 0, 0, 255);
+            this.putPixel(jtxData, projected.x, projected.y, 255, 0, 0, 255);
         }
 
         this.updateCanvas(this.jtx, jtxData);
 
         for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
             let dot:Dot = this.currentConfiguration.dots[n];
-            let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
-            let drawX: number = W - Math.round(projected.x);
-            let drawY: number = H - Math.round(projected.y);
-            if (drawX < 0 || drawY < 0 || drawX > W || drawY > H)
+            let draw: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
+            if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
 
-            this.jtx.fillText(dot.text, drawX, drawY + 24);
+            this.jtx.fillText(dot.text, draw.x, draw.y + 24);
         }
     }
     
@@ -153,37 +160,85 @@ class FractalManager {
     }
     
     animateTo(newConfiguration: FractalConfiguration) {
-        if (this.currentAnimation)
+        if (this.currentAnimation) {
             this.currentAnimation.cancel();
-        this.currentAnimation = new FractalAnimation(this, this.currentConfiguration, newConfiguration);
-        this.currentAnimation.perform();
+            this.currentAnimation = new FractalAnimation(this, this.currentConfiguration, newConfiguration);
+            this.currentAnimation.perform();
+        } else {
+            this.currentAnimation = new FractalAnimation(this, this.currentConfiguration, newConfiguration);
+            this.currentAnimation.jumpToEnd();
+        }
     }
 
-    zoomTo(screenX: number, screenY: number) {
-        if (!isEditMode)
-            return;
-
+    getRealPoint(screenX: number, screenY: number): Point2D {
         const rect = this.j.getBoundingClientRect();
         const x = screenX - rect.left;
         const y = screenY - rect.top;
-        const dx = this.currentConfiguration.focus.convertScreenPointToReal(x, y).x;
-        const dy = this.currentConfiguration.focus.convertScreenPointToReal(x, y).y;
-        this.lastClick = new Point2D(dx, dy);
+        return this.currentConfiguration.focus.convertScreenPointToReal(x, y);
+    }
+
+    getScreenPoint(realX: number, realY: number): Point2D {
+        return this.currentConfiguration.focus.convertRealPointToScreen(realX, realY);
+    }
+
+    mousedown(screenX: number, screenY: number) {
+        if (!isEditMode)
+            return;
+        
+        for (let n: number = 0; n < this.currentConfiguration.dots.length; n++) {
+            let dot = this.currentConfiguration.dots[n];
+            let dotScreenLocation: Point2D = this.getScreenPoint(dot.x, dot.y);
+            if (Math.abs(dotScreenLocation.x - screenX) + Math.abs(dotScreenLocation.y - screenY) < 10) {
+                this.isDraggingDot = true;
+                this.draggingDotNumber = n;
+            }
+        }
+    }
+
+    mousemove(screenX: number, screenY: number) {
+        if (!isEditMode)
+            return;
+        if (!this.isDraggingDot)
+            return;
+
+        let newPoint: Point2D = this.getRealPoint(screenX, screenY);
+        this.currentConfiguration.dots[this.draggingDotNumber] = new Dot(
+            newPoint.x,
+            newPoint.y,
+            this.currentConfiguration.dots[this.draggingDotNumber].text);
+        this.redraw();
+    }
+
+    mouseup(screenX: number, screenY: number) {
+        if (!isEditMode)
+            return;
+        
+        if (this.isDraggingDot) {
+            this.isDraggingDot = false;
+            this.draggingDotNumber = null;
+            
+            // TODO ?
+            
+            return;
+        }
+
+        let realPoint: Point2D = this.getRealPoint(screenX, screenY);
+        this.lastClick = realPoint;
 
         if (this.currentAnimation && !this.currentAnimation.finished())
             return;
 
-        let dZoom = this.currentConfiguration.focus.zoom;
+        let newZoom = this.currentConfiguration.focus.zoom;
 
         if (keyManager.pressedKeys["16"] || keyManager.pressedKeys["17"]) {
             if (keyManager.pressedKeys["16"] && keyManager.pressedKeys["17"]) // ctrl + shift
-                dZoom /= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
+                newZoom /= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
             else if (keyManager.pressedKeys["17"]) // ctrl
-                dZoom *= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
+                newZoom *= this.zoomFactorPerClick * Math.pow(2, editMetaSpeed);
 
             this.animateTo(new FractalConfiguration(
                 this.currentConfiguration.seed,
-                new Focus(dx, dy, dZoom),
+                new Focus(realPoint.x, realPoint.y, newZoom),
                 this.currentConfiguration.dots
             ));
         } else if (keyManager.pressedKeys["18"]) {

@@ -36,6 +36,6 @@ class Focus {
     convertRealPointToScreen(realX: number, realY: number): Point2D {
         const screenX: number = W - (realX - this.XMin) / this.Delta;
         const screenY: number = (realY - this.YMin) / this.Delta;
-        return new Point2D(screenX, screenY);
+        return new Point2D(W - screenX, H - screenY);
     }
 }
