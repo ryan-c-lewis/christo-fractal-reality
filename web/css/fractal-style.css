@@ -2,3 +2,7 @@ body {
     background-color: #000000;
     color: #dddddd;
 }
+
+section p {
+    background-color: #000000;
+}

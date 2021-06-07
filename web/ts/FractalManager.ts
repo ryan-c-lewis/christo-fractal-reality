@@ -26,8 +26,8 @@ class FractalManager {
         document.documentElement.style.overflow = 'hidden'; // remove scrollbars
         this.jtx.canvas.width = W;
         this.jtx.canvas.height = H;
-        this.jtx.font = '20px Courier';
-        this.jtx.fillStyle = 'white';
+        this.jtx.font = 'bold 20px Courier';
+        //this.jtx.fillStyle = 'white';
         this.jtx.textAlign = 'center';
         this.j.style.width = W + "px";
         this.j.style.height = H + "px";
@@ -132,7 +132,7 @@ class FractalManager {
 
             for (let xDiff = -4; xDiff < 4; xDiff++)
                 for (let yDiff = -4; yDiff < 4; yDiff++)
-                    this.putPixel(jtxData, Math.round(draw.x + xDiff), Math.round(draw.y + yDiff), 255, 0, 0, 255);
+                    this.putPixel(jtxData, Math.round(draw.x + xDiff), Math.round(draw.y + yDiff), 255, 0, 0, Math.round(dot.alpha * 255));
         }
 
         for(let n = 0; n < this.savedClicks.length; n++) {
@@ -149,6 +149,7 @@ class FractalManager {
             if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
 
+            this.jtx.fillStyle = "rgba(255, 255, 255, " + dot.alpha + ")";
             this.jtx.fillText(dot.text, draw.x, draw.y + 24);
         }
     }

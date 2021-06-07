@@ -81,7 +81,51 @@ class FractalAnimation {
     }
 
     private getUpdatedDots(step: number): Dot[] {
-        // TODO
-        return this.end.dots;
+        let totalPercent = Math.min(step / this.steps * 3, 1); // finish this animation quicker than the others
+
+        let allDots = [];
+        
+        if (totalPercent <= 0.001) {
+            allDots = allDots.concat(this.start.dots);
+            for (let n = 0; n < allDots.length; n++)
+                allDots[n].alpha = 1;
+            return allDots;
+        }
+        if (totalPercent >= 0.999) {
+            allDots = allDots.concat(this.end.dots);
+            for (let n = 0; n < allDots.length; n++)
+                allDots[n].alpha = 1;
+            return allDots;
+        }
+
+        let dotsGoingAway = this.start.dots;
+        for (let n = 0; n < dotsGoingAway.length; n++)
+            dotsGoingAway[n].alpha = 1 - totalPercent;
+
+        let dotsComingIn = this.end.dots;
+        for (let n = 0; n < dotsComingIn.length; n++)
+            dotsComingIn[n].alpha = totalPercent;
+        
+        for (let n = 0; n < dotsGoingAway.length; n++) {
+            allDots = allDots.concat(dotsGoingAway[n]);
+            for (let m = 0; m < dotsComingIn.length; m++) {
+                if (dotsGoingAway[n].text === dotsComingIn[m].text) {
+                    allDots[n].alpha = 1;
+                    break;
+                }
+            }
+        }
+        for (let n = 0; n < dotsComingIn.length; n++) {
+            let foundDuplicate: boolean = false;
+            for (let m = 0; m < dotsGoingAway.length; m++) {
+                if (dotsGoingAway[m].text === dotsComingIn[n].text) {
+                    foundDuplicate = true;
+                    break;
+                }
+            }
+            if (!foundDuplicate)
+                allDots = allDots.concat(dotsComingIn[n]);
+        }
+        return allDots;
     }
 }

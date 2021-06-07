@@ -3,7 +3,7 @@ const PresentationData = {
         {
             "slides": [
                 {
-                    "text": "",
+                    "text": "(This is a dynamic slide show. Use the arrow keys to move through the slides.)",
                     "julia": {"x":0,"y":0},
                     "focus": {"x":0,"y":0,"zoom":1}
                 },
