@@ -2,6 +2,7 @@ class FractalManager {
     private j:HTMLCanvasElement;
     private jtx:CanvasRenderingContext2D;
 
+    private colors: FractalColors;
     private currentConfiguration: FractalConfiguration;
     private currentAnimation: FractalAnimation;
     
@@ -16,10 +17,12 @@ class FractalManager {
 
     constructor() {
         this.currentConfiguration = new FractalConfiguration(new Point2D(0, 0), new Focus(0, 0, 1), []);
+        this.colors = new FractalColors(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
         this.j = document.getElementById("julia") as HTMLCanvasElement;
         this.jtx = this.j.getContext("2d");
         this.configureCanvas();
+        
     }
 
     configureCanvas() {
@@ -36,12 +39,12 @@ class FractalManager {
         this.redraw();
     }
 
-    putPixel(canvasData, x, y, r, g, b, a) {
+    putPixel(canvasData, x, y, color: Color) {
         const index = (x + y * W) * 4;
-        canvasData.data[index + 0] = r;
-        canvasData.data[index + 1] = g;
-        canvasData.data[index + 2] = b;
-        canvasData.data[index + 3] = a; // 0 -- invisible, 255 
+        canvasData.data[index] = color.r;
+        canvasData.data[index + 1] = color.g;
+        canvasData.data[index + 2] = color.b;
+        canvasData.data[index + 3] = color.a;
     }
 
     updateCanvas(canvas: CanvasRenderingContext2D, canvasData: ImageData) {
@@ -72,6 +75,10 @@ class FractalManager {
         navigator.clipboard.writeText(text);
     }
     
+    setColors(newColors: FractalColors) {
+        this.colors = newColors;
+    }
+    
     afterWindowResized() {
         this.currentConfiguration.focus =
             new Focus(this.currentConfiguration.focus.x, this.currentConfiguration.focus.y, this.currentConfiguration.focus.zoom);
@@ -87,41 +94,44 @@ class FractalManager {
     redraw() {
         let c_real = this.currentConfiguration.seed.x;
         let c_imag = this.currentConfiguration.seed.y;
-        var row, col, color = 0;
-        var x, y;
-        var Z_imag, Z_real, Z2_imag, Z2_real;
-        var delta = this.currentConfiguration.focus.Delta;
+        let delta = this.currentConfiguration.focus.Delta;
 
         let jtxData:ImageData = this.jtx.getImageData(0, 0, W, H);
+        
+        let fractalColor: Color = this.colors.fractal;
+        let dotColor: Color = this.colors.dot;
+        let textColor: Color = this.colors.text;
 
-        /* Julia set computation */
-        y = this.currentConfiguration.focus.YMax;
-        for(row = 0; row < H; row++){
-            x = this.currentConfiguration.focus.XMin;
-            for(col = 0; col < W; col++){
-                color = 0;
-                Z_real = x; /* Z := x+yi */
-                Z_imag = y;
+        let realY = this.currentConfiguration.focus.YMax;
+        for(let screenY = 0; screenY < H; screenY++){
+            let realX = this.currentConfiguration.focus.XMin;
+            for(let screenX = 0; screenX < W; screenX++){
+                let iteration = 0;
+                let Z_real = realX;
+                let Z_imag = realY;
+                let Z2_real, Z2_imag;
 
-                /* Iteration */
                 do {
-                    /* Z_{n+1} = Z_n^2 + c */
                     Z2_real = Z_real * Z_real;
                     Z2_imag = Z_imag * Z_imag;
                     Z_imag = 2.0 * Z_imag * Z_real + c_imag;
                     Z_real = Z2_real - Z2_imag + c_real;
-                    color++;
-                } while(color < this.maxIterations && (Z2_real + Z2_imag) < 4.0);
+                    iteration++;
+                } while(iteration < this.maxIterations && (Z2_real + Z2_imag) < 4.0);
 
-                /* plot pixel */
-                if (color < this.maxIterations)
-                    this.putPixel(jtxData, col, row, color, 4*color, 20+color, color * color);
-                else
-                    this.putPixel(jtxData, col, row, 0, 0, 0, 255);
+                if (iteration < this.maxIterations) {
+                    const colorMultiplier = 1 / (iteration / this.maxIterations);
+                    const alpha = iteration * iteration / 3;
+                    const drawColor: Color = new Color(fractalColor.r * colorMultiplier, fractalColor.g * colorMultiplier, fractalColor.b * colorMultiplier, alpha);
+                    this.putPixel(jtxData, screenX, screenY, drawColor);
+                }
+                else {
+                    this.putPixel(jtxData, screenX, screenY, new Color(0, 0, 0, 255));
+                }
 
-                x += delta;
+                realX += delta;
             }
-            y -= delta;
+            realY -= delta;
         }
 
         for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
@@ -130,15 +140,16 @@ class FractalManager {
             if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
 
+            const fadedDotColor: Color = new Color(dotColor.r, dotColor.g, dotColor.b, Math.round(dot.alpha * 255));
             for (let xDiff = -4; xDiff < 4; xDiff++)
                 for (let yDiff = -4; yDiff < 4; yDiff++)
-                    this.putPixel(jtxData, Math.round(draw.x + xDiff), Math.round(draw.y + yDiff), 255, 0, 0, Math.round(dot.alpha * 255));
+                    this.putPixel(jtxData, Math.round(draw.x + xDiff), Math.round(draw.y + yDiff), fadedDotColor);
         }
 
         for(let n = 0; n < this.savedClicks.length; n++) {
             let click:Point2D = this.savedClicks[n];
             let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(click.x, click.y);
-            this.putPixel(jtxData, projected.x, projected.y, 255, 0, 0, 255);
+            this.putPixel(jtxData, projected.x, projected.y, dotColor);
         }
 
         this.updateCanvas(this.jtx, jtxData);
@@ -149,7 +160,7 @@ class FractalManager {
             if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
 
-            this.jtx.fillStyle = "rgba(255, 255, 255, " + dot.alpha + ")";
+            this.jtx.fillStyle = "rgba(" + textColor.r + ", " + textColor.g + ", " + textColor.b + ", " + dot.alpha + ")";
             this.jtx.fillText(dot.text, draw.x, draw.y + 24);
         }
     }

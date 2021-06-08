@@ -19,6 +19,8 @@ class SlideManager {
                 }
             });
         }
+        
+        fractal.setColors(this.getColors());
     }
 
     respondToVisibility(element, callback) {
@@ -51,6 +53,14 @@ class SlideManager {
 
         document.getElementById("webslides").innerHTML = slidesHTML;
         document.dispatchEvent(new CustomEvent("afterConfigureSlides"));
+    }
+    
+    getColors() {
+        let colors = PresentationData.chapters[this.currentChapter].colors;
+        return new FractalColors(
+            new Color(+colors.fractal.r, +colors.fractal.g, +colors.fractal.b, +colors.fractal.a),
+            new Color(+colors.dot.r, +colors.dot.g, +colors.dot.b, +colors.dot.a),
+            new Color(+colors.text.r, +colors.text.g, +colors.text.b, +colors.text.a));
     }
 
     getJuliaAsOf(slideNum: number): Point2D {

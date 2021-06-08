@@ -1,6 +1,11 @@
 const PresentationData = {
     "chapters": [
         {
+            "colors": {
+                "fractal": {"r":0,"g":100,"b":0,"a":255},
+                "dot": {"r":255,"g":0,"b":0,"a":255},
+                "text": {"r":255,"g":255,"b":255,"a":255},
+            },
             "slides": [
                 {
                     "text": "(This is a dynamic slide show. Use the arrow keys to move through the slides.)",
@@ -304,6 +309,28 @@ const PresentationData = {
                 {
                     "text": "And most importantly: these fundamental patterns find their ultimate expression in the very person of Christ himself.",
                 },
+            ]
+        },
+        {
+            "colors": {
+                "fractal": {"r":255,"g":255,"b":0,"a":255},
+                "dot": {"r":255,"g":0,"b":0,"a":255},
+                "text": {"r":255,"g":255,"b":255,"a":255},
+            },
+            "slides": [
+                {
+                    "text": "",
+                    "julia": {"x":0,"y":0},
+                    "focus": {"x":0,"y":0,"zoom":1}
+                },
+                {
+                    "text": "IN THE BEGINNING GOD CREATED THE HEAVENS AND THE EARTH",
+                    "julia": {"x":-1.3757812500000004,"y":0},
+                    "focus": {"x":0,"y":0,"zoom":1}
+                },
+                {
+                    "text": "This sentence (\"In the beginning God created the heavens and the earth\") is the opening line of the Bible. It is also the most fundamental pattern of reality.",
+                }
             ]
         }
     ]
