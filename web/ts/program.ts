@@ -40,5 +40,9 @@ window.onresize = function() {
 window.onload = function() {
     keyManager = new KeyManager();
     fractal = new FractalManager();
-    slideManager = new SlideManager(1);
+    goToChapter(0);
+}
+
+const goToChapter = function(n: number) {
+    slideManager = new SlideManager(n);
 }
