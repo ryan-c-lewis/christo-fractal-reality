@@ -40,9 +40,13 @@ window.onresize = function() {
 window.onload = function() {
     keyManager = new KeyManager();
     fractal = new FractalManager();
-    goToChapter(0);
+    
+    let chapter: number = +new URLSearchParams(window.location.search).get('chapter');
+    if (chapter == 0)
+        chapter = 1;
+    goToChapter(chapter);
 }
 
 const goToChapter = function(n: number) {
-    slideManager = new SlideManager(n);
+    slideManager = new SlideManager(n - 1);
 }

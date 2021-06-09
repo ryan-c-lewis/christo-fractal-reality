@@ -8,7 +8,7 @@ const PresentationData = {
             },
             "slides": [
                 {
-                    "text": "(This is a dynamic slide show. Use the arrow keys to move through the slides.)",
+                    "text": "CHAPTER 1: Introduction<br /><br />(This is a dynamic slide show. Use the arrow keys to move through the slides.)",
                     "julia": {"x":0,"y":0},
                     "focus": {"x":0,"y":0,"zoom":1}
                 },
@@ -309,6 +309,9 @@ const PresentationData = {
                 {
                     "text": "And most importantly: these fundamental patterns find their ultimate expression in the very person of Christ himself.",
                 },
+                {
+                    "text": "<a href='index.html?chapter=2#slide=1'>(Click here to continue to CHAPTER 2)</a>",
+                },
             ]
         },
         {
@@ -319,7 +322,7 @@ const PresentationData = {
             },
             "slides": [
                 {
-                    "text": "",
+                    "text": "CHAPTER 2: Heaven and Earth",
                     "julia": {"x":0,"y":0},
                     "focus": {"x":0,"y":0,"zoom":1}
                 },

@@ -32,16 +32,38 @@
     </div>
     <div class="nav-menu">
       <ul>
-        <a id="nav-link-1" class="nav-link" href="#"><li><h2 class="mt">Intro</h2></li></a>
-        <a id="nav-link-2" class="nav-link" href="#"><li><h2 class="mt">Heaven and Earth</h2></li></a>
-        <a id="nav-link-3" class="nav-link" href="#"><li><h2 class="mt">Death and Resurrection</h2></li></a>
+        <a id="nav-link-1" class="nav-link" href="#">
+          <li>
+            <h2 class="mt">CHAPTER 1</h2>
+            <br/>
+            <h2 class="mt">Introduction</h2>
+          </li>
+        </a>
+        <a id="nav-link-2" class="nav-link" href="#">
+          <li>
+            <h2 class="mt">CHAPTER 2</h2>
+            <br/>
+            <h2 class="mt">Heaven and Earth</h2>
+          </li>
+        </a>
+        <a id="nav-link-3" class="nav-link" href="#">
+          <li>
+            <h2 class="mt">CHAPTER 3</h2>
+            <br/>
+            <h2 class="mt">Death and Resurrection</h2>
+          </li>
+        </a>
       </ul>
     </div>
 
     <script src="./js/webslides.js"></script>
     <script>
       document.addEventListener("afterConfigureSlides", function(e) {
-        window.ws = new WebSlides();
+        window.ws = new WebSlides({
+          loop:false,
+          navigateOnScroll:false,
+          showIndex:false
+        });
       }, false);
     </script>
     <script defer src="./js/svg-icons.js"></script>
