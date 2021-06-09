@@ -330,7 +330,224 @@ const PresentationData = {
                 },
                 {
                     "text": "This sentence (\"In the beginning God created the heavens and the earth\") is the opening line of the Bible. It is also the most fundamental pattern of reality.",
-                }
+                },
+                {
+                    "text": "\"Heaven\" isn't just talking about the sky and \"earth\" isn't just talking about the planet. The meaning is much deeper than that.",
+                },
+                {
+                    "text": "\"Heaven\" is God's domain, the things above, the abstract, the transcendent.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                    ]
+                },
+                {
+                    "text": "\"Earth\" is the created domain, the things below, the concrete.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                    ]
+                },
+                {
+                    "text": "But \"heaven\" and \"earth\" do not remain separate. God brings them together. This is his grand project, his ultimate purpose for creation.",
+                    "focus": {"x":0,"y":0,"zoom":5}
+                },
+                {
+                    "text": "At the beginning of the Bible we see God creating a special place of union between heaven and earth--the Garden of Eden.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Garden of Eden","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "The Garden of Eden is where God's domain and the created domain overlap. God walks in the garden, and man walks in the garden. It is the bridge between heaven and earth.",
+                },
+                {
+                    "text": "But even after humanity is cast out of Eden, God still creates places of union--places where heaven meets earth...",
+                },
+                {
+                    "text": "Later in Genesis, Jacob dreams of a ladder connecting heaven and earth.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Stairway to Heaven","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Heaven touches earth when God meets Moses in the wilderness through the burning bush.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Burning Bush","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "And later when Moses climbs Mount Sinai to meet with God.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Mount Sinai","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Heaven meets earth as God dwells in the tabernacle as the Israelites live in the wilderness...",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Tabernacle","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "...and as God sits enthroned over the Ark of the Covenant...",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Ark","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "...and later in the temple.",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Temple","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "But heaven and earth cannot be brought together on a whim. \"In the beginning God created the heavens and the earth.\" They were created as separate spaces.",
+                    "dots": [
+                        {"text": "God in heaven","x":-0.15,"y":0},
+                        {"text": "Man on earth","x":0.15,"y":0},
+                    ]
+                },
+                {
+                    "text": "There is always a ladder, a connector. A mediator must join them.",
+                    "dots": [
+                        {"text": "God in heaven","x":-0.15,"y":0},
+                        {"text": "Man on earth","x":0.15,"y":0},
+                        {"text": "Special chosen mediator","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "A mediator must be *made* of both heaven and earth in order to mediate between them. So God creates Adam from the \"dust of the earth\" combined with the \"breath of God\".",
+                    "dots": [
+                        {"text": "Breath of God in heaven","x":-0.15,"y":0},
+                        {"text": "Dust of earth","x":0.15,"y":0},
+                        {"text": "Adam","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Adam in his very nature is composed of both heaven and earth, and thus he is capable of mediating. He mediates between God and creation in the Garden of Eden.",
+                    "dots": [
+                        {"text": "God","x":-0.15,"y":0},
+                        {"text": "Creation","x":0.15,"y":0},
+                        {"text": "Adam mediates","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Later on we see other types of mediators...",
+                    "dots": [
+                        {"text": "God","x":-0.15,"y":0},
+                        {"text": "Creation","x":0.15,"y":0},
+                    ]
+                },
+                {
+                    "text": "Moses mediates in the wilderness.",
+                    "dots": [
+                        {"text": "God","x":-0.15,"y":0},
+                        {"text": "Israel","x":0.15,"y":0},
+                        {"text": "Moses mediates","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "The high priest mediates in the tabernacle and temple.",
+                    "dots": [
+                        {"text": "God","x":-0.15,"y":0},
+                        {"text": "Israel","x":0.15,"y":0},
+                        {"text": "Priest mediates","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "The king of Israel mediates in Jerusalem.",
+                    "dots": [
+                        {"text": "God","x":-0.15,"y":0},
+                        {"text": "Israel","x":0.15,"y":0},
+                        {"text": "King mediates","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Israel is the nation that mediates between God and the rest of the nations.",
+                    "dots": [
+                        {"text": "God","x":-0.15,"y":0},
+                        {"text": "Nations","x":0.15,"y":0},
+                        {"text": "Israel mediates","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "But these things are only shadows and whispers of the ultimate thing.",
+                    "dots": []
+                },
+                {
+                    "text": "The ultimate goal is for heaven and earth to be fully, eternally united. This is God's grand purpose for all things.",
+                },
+                {
+                    "text": "The Bible opens with God creating the heavens and the earth.",
+                    "dots": [
+                        {"text": "Heavens","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                    ]
+                },
+                {
+                    "text": "The Bible closes with Christ fully uniting the new heavens and the new earth.",
+                    "dots": [
+                        {"text": "New heavens, New earth, United by Christ","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "When Jesus speaks of his eternal kingdom, this is what he means. He is joining all things together--things above and things below. Heaven and earth.",
+                },
+                {
+                    "text": "Adam was able to mediate in the Garden of Eden because he was *made* of heaven and earth.",
+                    "dots": [
+                        {"text": "Breath of God in heaven","x":-0.15,"y":0},
+                        {"text": "Dust of earth","x":0.15,"y":0},
+                        {"text": "Adam","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "But Christ is the ultimate mediator, the 2nd Adam, able to fully mediate because he is *in his nature* the full union between God and man.",
+                    "dots": [
+                        {"text": "God and man united in Christ, the 2nd Adam","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Jacob dreams of a ladder connecting heaven and earth...",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Stairway to Heaven","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "Christ refers to himself as the ladder joining heaven and earth, upon which the angels climb up and down.",
+                    "dots": [
+                        {"text": "Heaven and earth joined by the stairway of Christ","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "God previously dwelt in the temple...",
+                    "dots": [
+                        {"text": "Heaven","x":-0.15,"y":0},
+                        {"text": "Earth","x":0.15,"y":0},
+                        {"text": "Temple","x":0,"y":0},
+                    ]
+                },
+                {
+                    "text": "But the true temple is Christ's body, and he will dwell in the New Jerusalem forever.",
+                    "dots": [
+                        {"text": "Heaven and earth joined by the temple of Christ's body","x":0,"y":0},
+                    ]
+                },
             ]
         }
     ]

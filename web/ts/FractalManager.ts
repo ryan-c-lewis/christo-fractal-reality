@@ -9,11 +9,9 @@ class FractalManager {
     private maxIterations: number = 50;
     private zoomFactorPerClick: number = 5;
     
-    private lastClick: Point2D;
-    private savedClicks: Point2D[] = [];
-    
     private isDraggingDot: boolean;
     private draggingDotNumber: number;
+    private addedDots: Dot[] = [];
 
     constructor() {
         this.currentConfiguration = new FractalConfiguration(new Point2D(0, 0), new Focus(0, 0, 1), []);
@@ -59,15 +57,15 @@ class FractalManager {
         let text: string = "\"julia\": {\"x\":" + this.currentConfiguration.seed.x + ",\"y\":" + this.currentConfiguration.seed.y + "},\n" +
             "                    \"focus\": {\"x\":" + this.currentConfiguration.focus.x + ",\"y\":" + this.currentConfiguration.focus.y + ",\"zoom\":" + this.currentConfiguration.focus.zoom + "}";
 
-        if (this.currentConfiguration.dots.length + this.savedClicks.length > 0) {
+        if (this.currentConfiguration.dots.length + this.addedDots.length > 0) {
             text += ",\n                    \"dots\": [\n";
             for (let n:number = 0; n < this.currentConfiguration.dots.length; n++) {
                 let dot = this.currentConfiguration.dots[n];
                 text += "                        {\"text\": \"" + dot.text + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
             }
-            for (let n:number = 0; n < this.savedClicks.length; n++) {
-                let dot = this.savedClicks[n];
-                text += "                        {\"text\": \"Dot" + (n + 1) + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
+            for (let n:number = 0; n < this.addedDots.length; n++) {
+                let dot = this.addedDots[n];
+                text += "                        {\"text\": \"" + dot.text + "\",\"x\":" + dot.x + ",\"y\":" + dot.y + "},\n";
             }
             text += "                    ]";
         }
@@ -133,9 +131,13 @@ class FractalManager {
             }
             realY -= delta;
         }
+        
+        let allDots: Dot[] = [];
+        allDots = allDots.concat(this.currentConfiguration.dots);
+        allDots = allDots.concat(this.addedDots);
 
-        for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
-            let dot:Dot = this.currentConfiguration.dots[n];
+        for(let n = 0; n < allDots.length; n++) {
+            let dot:Dot = allDots[n];
             let draw: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
             if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
@@ -146,16 +148,10 @@ class FractalManager {
                     this.putPixel(jtxData, Math.round(draw.x + xDiff), Math.round(draw.y + yDiff), fadedDotColor);
         }
 
-        for(let n = 0; n < this.savedClicks.length; n++) {
-            let click:Point2D = this.savedClicks[n];
-            let projected: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(click.x, click.y);
-            this.putPixel(jtxData, projected.x, projected.y, dotColor);
-        }
-
         this.updateCanvas(this.jtx, jtxData);
 
-        for(let n = 0; n < this.currentConfiguration.dots.length; n++) {
-            let dot:Dot = this.currentConfiguration.dots[n];
+        for(let n = 0; n < allDots.length; n++) {
+            let dot:Dot = allDots[n];
             let draw: Point2D = this.currentConfiguration.focus.convertRealPointToScreen(dot.x, dot.y);
             if (draw.x < 0 || draw.y < 0 || draw.x > W || draw.y > H)
                 continue;
@@ -235,7 +231,6 @@ class FractalManager {
         }
 
         let realPoint: Point2D = this.getRealPoint(screenX, screenY);
-        this.lastClick = realPoint;
 
         if (this.currentAnimation && !this.currentAnimation.finished())
             return;
@@ -254,7 +249,8 @@ class FractalManager {
                 this.currentConfiguration.dots
             ));
         } else if (keyManager.pressedKeys["18"]) {
-            this.savedClicks = this.savedClicks.concat(this.lastClick);
+            this.addedDots = this.addedDots.concat(new Dot(realPoint.x, realPoint.y, "Dot" + (this.addedDots.length + 1)));
+            this.redraw();
         }
     }
 }
